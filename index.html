@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Digital Informatic | Solusi Intelijen Taktikal</title>
+    <!-- Favicon -->
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="manifest" href="/site.webmanifest">
+    <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#8b5cf6">
+    <meta name="msapplication-TileColor" content="#050508">
+    <meta name="theme-color" content="#050508">
+    <!-- Fonts & Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;600;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        :root {
+            --accent: #8b5cf6;
+            --accent-soft: rgba(139, 92, 246, 0.1);
+            --bg-deep: #050508;
+            --surface: rgba(18, 18, 26, 0.7);
+            --border: rgba(255, 255, 255, 0.06);
+        }
+
+        body {
+            background-color: var(--bg-deep);
+            color: #e2e8f0;
+            font-family: 'Lexend', sans-serif;
+            scroll-behavior: smooth;
+            /* Transition Effect */
+            opacity: 0;
+            transition: opacity 0.8s;
+        }
+
+        .glass-panel {
+            background: var(--surface);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border);
+            transition: all 0.4s ease;
+        }
+
+        .glass-panel:hover {
+            border-color: rgba(139, 92, 246, 0.3);
+            background: rgba(18, 18, 26, 0.9);
+            transform: translateY(-5px);
+        }
+
+        .mono { font-family: 'Fira Code', monospace; }
+
+        /* Background Effects */
+        .glow-orb {
+            position: fixed;
+            width: 50vw;
+            height: 50vw;
+            background: radial-gradient(circle, rgba(139, 92, 246, 0.05) 0%, transparent 70%);
+            border-radius: 50%;
+            z-index: -1;
+            filter: blur(60px);
+            pointer-events: none;
+        }
+
+        /* Tactical Button */
+        .btn-shadow {
+            background: var(--accent);
+            color: white;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 20px rgba(139, 92, 246, 0.2);
+        }
+
+        .btn-shadow:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(139, 92, 246, 0.4);
+            background: #7c3aed;
+        }
+
+        /* Page Transitions */
+        .page-content {
+            display: none;
+            animation: fadeIn 0.5s ease forwards;
+        }
+
+        .page-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Terminal Hacks Style */
+        .terminal-container {
+            background: #000;
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            border-radius: 12px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            overflow: hidden;
+        }
+
+        .terminal-header {
+            background: #1a1a2e;
+            padding: 8px 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .dot { width: 8px; height: 8px; border-radius: 50%; }
+        .dot-red { background: #ff5f56; }
+        .dot-yellow { background: #ffbd2e; }
+        .dot-green { background: #27c93f; }
+
+        .terminal-body {
+            padding: 16px;
+            height: 250px;
+            overflow-y: auto;
+            scrollbar-width: none;
+        }
+        .terminal-body::-webkit-scrollbar { display: none; }
+
+        /* Mobile Menu Overlay */
+        #mobile-menu-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(5, 5, 8, 0.98);
+            backdrop-filter: blur(15px);
+            z-index: 100;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2rem;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-deep); }
+        ::-webkit-scrollbar-thumb { background: #1e1e2e; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+        #notification-box {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            left: 20px;
+            z-index: 9999;
+            transform: translateY(200%);
+            transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @media (min-width: 768px) {
+            #notification-box {
+                left: auto;
+                width: 380px;
+            }
+        }
+
+        #notification-box.show { transform: translateY(0); }
+
+        .hud-text {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--accent);
+        }
+        
+        /* Loading Animation */
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(139, 92, 246, 0.3);
+            border-radius: 50%;
+            border-top-color: #8b5cf6;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="overflow-x-hidden">
+    <div class="glow-orb" style="top: -10%; left: -10%;"></div>
+    <div class="glow-orb" style="bottom: -10%; right: -10%; background: radial-gradient(circle, rgba(59, 130, 246, 0.05) 0%, transparent 70%);"></div>
+
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full z-50 px-4 md:px-6 py-4 md:py-6 transition-all duration-300" id="main-nav">
+        <div class="max-w-7xl mx-auto flex justify-between items-center bg-black/40 backdrop-blur-xl border border-white/5 rounded-full px-6 md:px-8 py-3 md:py-4">
+            <div class="flex items-center gap-2 md:gap-3 cursor-pointer" onclick="showPage('home')">
+                <div class="w-7 h-7 md:w-8 md:h-8 bg-violet-600 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-microchip text-white text-xs md:text-sm"></i>
+                </div>
+                <span class="font-bold text-base md:text-lg tracking-tighter uppercase">DIGITAL<span class="text-violet-500">INFORMATIC</span></span>
+            </div>
+            
+            <!-- Desktop Menu -->
+            <div class="hidden lg:flex items-center gap-8 text-xs mono font-medium text-slate-400">
+                <a href="javascript:void(0)" onclick="showPage('home', 'protocol')" class="hover:text-violet-400 transition-colors uppercase">Protokol</a>
+                <a href="javascript:void(0)" onclick="showPage('home', 'services')" class="hover:text-violet-400 transition-colors uppercase">Layanan</a>
+                <a href="javascript:void(0)" onclick="showPage('home', 'testimonials')" class="hover:text-violet-400 transition-colors uppercase">Testimoni</a>
+                <a href="javascript:void(0)" onclick="showPage('infrastructure')" class="hover:text-violet-400 transition-colors uppercase">Jaringan</a>
+                <a href="javascript:void(0)" onclick="showPage('faq')" class="hover:text-violet-400 transition-colors uppercase">F.A.Q</a>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <button onclick="toggleModal('registerModal')" class="bg-white text-black px-4 md:px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-violet-500 hover:text-white transition-all shadow-lg shadow-white/5">
+                    Portal
+                </button>
+                <button onclick="toggleMobileMenu()" class="lg:hidden w-10 h-10 flex items-center justify-center text-white">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Menu Overlay -->
+    <div id="mobile-menu-overlay">
+        <button onclick="toggleMobileMenu()" class="absolute top-8 right-8 text-white text-2xl p-4">
+            <i class="fas fa-times"></i>
+        </button>
+        <a href="javascript:void(0)" onclick="showPage('home', 'protocol'); toggleMobileMenu()" class="text-2xl font-bold uppercase tracking-widest hover:text-violet-500">Protokol</a>
+        <a href="javascript:void(0)" onclick="showPage('home', 'services'); toggleMobileMenu()" class="text-2xl font-bold uppercase tracking-widest hover:text-violet-500">Layanan</a>
+        <a href="javascript:void(0)" onclick="showPage('infrastructure'); toggleMobileMenu()" class="text-2xl font-bold uppercase tracking-widest hover:text-violet-500">Jaringan</a>
+        <a href="javascript:void(0)" onclick="showPage('faq'); toggleMobileMenu()" class="text-2xl font-bold uppercase tracking-widest hover:text-violet-500">F.A.Q</a>
+    </div>
+
+    <!-- PAGE: HOME -->
+    <div id="page-home" class="page-content active">
+        <!-- Hero Section -->
+        <section class="min-h-screen flex flex-col items-center justify-center pt-24 pb-12 px-6">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-violet-500/10 border border-violet-500/20 text-violet-400 text-[9px] md:text-[10px] mono mb-8 md:mb-10 text-center uppercase tracking-widest">
+                <span class="w-1.5 h-1.5 rounded-full bg-violet-500 animate-pulse"></span>
+                STATUS JARINGAN: TERENKRIPSI
+            </div>
+            
+            <h1 class="text-4xl sm:text-5xl md:text-8xl font-extrabold text-center max-w-5xl leading-[1.1] md:leading-[1] mb-8 md:mb-10 tracking-tight">
+                Evolusi Terkini dalam <br class="hidden sm:block">
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 via-indigo-500 to-blue-600">Intelijen Digital.</span>
+            </h1>
+            
+            <p class="text-slate-400 text-center max-w-2xl text-base md:text-lg mb-10 md:mb-12 leading-relaxed">
+                Infrastruktur intelijen terenkripsi untuk pemantauan target secara anonim. Akses metadata real-time tanpa meninggalkan jejak digital sedikitpun.
+            </p>
+
+            <div class="w-full max-w-3xl mb-12">
+                <div class="glass-panel p-2 md:p-3 rounded-3xl md:rounded-[2.5rem] flex flex-col sm:flex-row gap-2 md:gap-3 shadow-2xl relative z-10">
+                    <div class="relative flex-1">
+                        <i class="fas fa-search absolute left-6 top-1/2 -translate-y-1/2 text-slate-500"></i>
+                        <input id="targetPhone" type="tel" placeholder="Nomor Target (08...)" 
+                               class="w-full h-14 md:h-16 pl-14 pr-8 bg-transparent text-white font-medium focus:outline-none placeholder:text-slate-600 rounded-full text-sm md:text-base"
+                               maxlength="15">
+                    </div>
+                    <button onclick="checkTarget()" id="trackButton" class="btn-shadow h-14 md:h-16 px-8 md:px-12 rounded-full flex items-center justify-center gap-3">
+                        <span class="mono text-xs md:text-sm font-bold">Lacak Subjek</span>
+                        <i class="fas fa-crosshairs text-xs"></i>
+                    </button>
+                </div>
+                <div class="flex flex-wrap justify-center gap-3 md:gap-4 mt-8">
+                    <div class="flex items-center gap-3 px-6 py-3 bg-white/5 rounded-xl border border-white/5 backdrop-blur-sm cursor-pointer hover:bg-white/10" onclick="showPage('status')">
+                        <i class="fas fa-network-wired text-violet-500 text-xs"></i>
+                        <span class="hud-text text-slate-400 !text-[9px] md:!text-[10px]">Node Aktif: ID-JAKARTA-01</span>
+                    </div>
+                    <div class="hidden sm:flex items-center gap-3 px-6 py-3 bg-white/5 rounded-xl border border-white/5 backdrop-blur-sm">
+                        <i class="fas fa-shield-halved text-violet-500 text-xs"></i>
+                        <span class="hud-text text-slate-400 !text-[9px] md:!text-[10px]">SSL: GRADE A+</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-16 w-full max-w-4xl px-4 mt-8">
+                <div class="text-center">
+                    <div class="text-2xl md:text-3xl font-bold">142K+</div>
+                    <div class="text-[9px] md:text-[10px] mono text-slate-500 uppercase mt-1">Sesi Aktif</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-2xl md:text-3xl font-bold">0.4ms</div>
+                    <div class="text-[9px] md:text-[10px] mono text-slate-500 uppercase mt-1">Latensi</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-2xl md:text-3xl font-bold">99.9%</div>
+                    <div class="text-[9px] md:text-[10px] mono text-slate-500 uppercase mt-1">Uptime</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-2xl md:text-3xl font-bold uppercase text-violet-400">Aman</div>
+                    <div class="text-[9px] md:text-[10px] mono text-slate-500 uppercase mt-1">AES-256</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Services Section -->
+        <section id="services" class="py-20 md:py-32 px-6 max-w-7xl mx-auto border-t border-white/5">
+            <div class="text-center mb-16 md:mb-20">
+                <span class="mono text-xs text-violet-500 font-bold uppercase tracking-widest">Matriks Kapabilitas</span>
+                <h2 class="text-3xl md:text-5xl font-black mt-4">Layanan Intelijen Kami.</h2>
+                <p class="text-slate-500 mt-4 max-w-2xl mx-auto text-sm md:text-base leading-relaxed">Ekosistem pelacakan terlengkap untuk penetrasi data digital secara menyeluruh.</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
+                <!-- WhatsApp -->
+                <div class="glass-panel p-6 md:p-8 rounded-[2rem] group">
+                    <div class="w-12 h-12 md:w-14 md:h-14 bg-green-500/10 rounded-2xl flex items-center justify-center text-green-500 mb-6 border border-green-500/20 group-hover:scale-110 transition-transform">
+                        <i class="fab fa-whatsapp text-xl md:text-2xl"></i>
+                    </div>
+                    <h3 class="text-lg md:text-xl font-bold mb-3">WhatsApp</h3>
+                    <p class="text-slate-500 text-xs md:text-sm leading-relaxed">Akses penuh ke obrolan, file media, dan log panggilan real-time.</p>
+                </div>
+                <!-- Instagram -->
+                <div class="glass-panel p-6 md:p-8 rounded-[2rem] group">
+                    <div class="w-12 h-12 md:w-14 md:h-14 bg-pink-500/10 rounded-2xl flex items-center justify-center text-pink-500 mb-6 border border-pink-500/20 group-hover:scale-110 transition-transform">
+                        <i class="fab fa-instagram text-xl md:text-2xl"></i>
+                    </div>
+                    <h3 class="text-lg md:text-xl font-bold mb-3">Instagram</h3>
+                    <p class="text-slate-500 text-xs md:text-sm leading-relaxed">Ekstraksi pesan langsung (DM), stories, dan profil tersembunyi.</p>
+                </div>
+                <!-- Camera Tracking -->
+                <div class="glass-panel p-6 md:p-8 rounded-[2rem] group">
+                    <div class="w-12 h-12 md:w-14 md:h-14 bg-violet-600/10 rounded-2xl flex items-center justify-center text-violet-500 mb-6 border border-violet-500/20 group-hover:scale-110 transition-transform">
+                        <i class="fas fa-camera-retro text-xl md:text-2xl"></i>
+                    </div>
+                    <h3 class="text-lg md:text-xl font-bold mb-3">Tracking Kamera</h3>
+                    <p class="text-slate-500 text-xs md:text-sm leading-relaxed">Aktifkan kamera depan/belakang secara diam-diam untuk visual langsung.</p>
+                </div>
+                <!-- Lokasi -->
+                <div class="glass-panel p-6 md:p-8 rounded-[2rem] group">
+                    <div class="w-12 h-12 md:w-14 md:h-14 bg-red-500/10 rounded-2xl flex items-center justify-center text-red-500 mb-6 border border-red-500/20 group-hover:scale-110 transition-transform">
+                        <i class="fas fa-location-dot text-xl md:text-2xl"></i>
+                    </div>
+                    <h3 class="text-lg md:text-xl font-bold mb-3">Lokasi GPS</h3>
+                    <p class="text-slate-500 text-xs md:text-sm leading-relaxed">Pemetaan lokasi koordinat tepat subjek secara real-time via satelit.</p>
+                </div>
+                <!-- Facebook -->
+                <div class="glass-panel p-6 md:p-8 rounded-[2rem] group">
+                    <div class="w-12 h-12 md:w-14 md:h-14 bg-blue-600/10 rounded-2xl flex items-center justify-center text-blue-500 mb-6 border border-blue-600/20 group-hover:scale-110 transition-transform">
+                        <i class="fab fa-facebook-messenger text-xl md:text-2xl"></i>
+                    </div>
+                    <h3 class="text-lg md:text-xl font-bold mb-3">Facebook</h3>
+                    <p class="text-slate-500 text-xs md:text-sm leading-relaxed">Monitoring aktivitas Messenger dan log interaksi profil target.</p>
+                </div>
+                <!-- Gallery Extraction -->
+                <div class="glass-panel p-6 md:p-8 rounded-[2rem] group">
+                    <div class="w-12 h-12 md:w-14 md:h-14 bg-amber-500/10 rounded-2xl flex items-center justify-center text-amber-500 mb-6 border border-amber-500/20 group-hover:scale-110 transition-transform">
+                        <i class="fas fa-images text-xl md:text-2xl"></i>
+                    </div>
+                    <h3 class="text-lg md:text-xl font-bold mb-3">Galeri Media</h3>
+                    <p class="text-slate-500 text-xs md:text-sm leading-relaxed">Unduh aset foto dan video dari memori internal perangkat target.</p>
+                </div>
+                <!-- Call Logs -->
+                <div class="glass-panel p-6 md:p-8 rounded-[2rem] group">
+                    <div class="w-12 h-12 md:w-14 md:h-14 bg-indigo-500/10 rounded-2xl flex items-center justify-center text-indigo-400 mb-6 border border-indigo-500/20 group-hover:scale-110 transition-transform">
+                        <i class="fas fa-phone-volume text-xl md:text-2xl"></i>
+                    </div>
+                    <h3 class="text-lg md:text-xl font-bold mb-3">Log Telepon</h3>
+                    <p class="text-slate-500 text-xs md:text-sm leading-relaxed">Riwayat panggilan suara lengkap beserta durasi dan ID penelepon.</p>
+                </div>
+                <!-- Deleted Messages -->
+                <div class="glass-panel p-6 md:p-8 rounded-[2rem] group">
+                    <div class="w-12 h-12 md:w-14 md:h-14 bg-purple-500/10 rounded-2xl flex items-center justify-center text-purple-500 mb-6 border border-purple-500/20 group-hover:scale-110 transition-transform">
+                        <i class="fas fa-trash-can text-xl md:text-2xl"></i>
+                    </div>
+                    <h3 class="text-lg md:text-xl font-bold mb-3">Pesan Terhapus</h3>
+                    <p class="text-slate-500 text-xs md:text-sm leading-relaxed">Pemulihan cache data untuk membaca pesan yang telah dihapus.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Testimonials -->
+        <section id="testimonials" class="py-20 md:py-32 px-6 bg-white/[0.01]">
+            <div class="max-w-7xl mx-auto text-center">
+                <h2 class="text-3xl md:text-5xl font-black mb-20">Ulasan Pakar Profesional.</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div class="glass-panel p-8 md:p-10 rounded-[2rem] text-left">
+                        <p class="text-slate-400 italic text-sm mb-8">"Integrasi node anonim sangat impresif. Berhasil sinkronisasi data tanpa terdeteksi firewall."</p>
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-full bg-violet-600/20 flex items-center justify-center font-bold text-violet-500 text-xs">AS</div>
+                            <h4 class="font-bold text-sm">Adrian Syahputra</h4>
+                        </div>
+                    </div>
+                    <div class="glass-panel p-8 md:p-10 rounded-[2rem] text-left border-violet-500/30">
+                        <p class="text-slate-300 italic text-sm mb-8">"Keakuratan metadata EXIF adalah kunci. Platform ini memberikan data mentah yang sangat presisi."</p>
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-full bg-blue-600/20 flex items-center justify-center font-bold text-blue-500 text-xs">KM</div>
+                            <h4 class="font-bold text-sm">Klarissa Maheswari</h4>
+                        </div>
+                    </div>
+                    <div class="glass-panel p-8 md:p-10 rounded-[2rem] text-left">
+                        <p class="text-slate-400 italic text-sm mb-8">"Akses remote kamera senyap sangat berguna. Latensi node global mendukung operasional lapangan."</p>
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-full bg-indigo-600/20 flex items-center justify-center font-bold text-indigo-500 text-xs">NW</div>
+                            <h4 class="font-bold text-sm">Narendra Wicaksono</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TERMINAL LOG ENKRIPSI -->
+        <section id="hacker-terminal" class="py-20 px-6 max-w-4xl mx-auto border-t border-white/5">
+            <div class="text-center mb-10">
+                <span class="mono text-[10px] text-violet-500 font-bold uppercase tracking-[0.3em]">Live Global Feed</span>
+                <h2 class="text-2xl md:text-3xl font-black mt-2 uppercase italic">Aktivitas Jaringan Real-Time</h2>
+            </div>
+            
+            <div class="terminal-container">
+                <div class="terminal-header">
+                    <div class="dot dot-red"></div>
+                    <div class="dot dot-yellow"></div>
+                    <div class="dot dot-green"></div>
+                    <span class="mono text-[9px] text-slate-500 ml-4">root@digital-informatic:~# tail -f /var/log/tracking.log</span>
+                </div>
+                <div id="live-terminal-body" class="terminal-body mono text-[10px] md:text-[11px] leading-relaxed">
+                    <div class="text-green-500">[OK] SYSTEM INITIALIZED</div>
+                    <div class="text-slate-500">[INFO] WAITING FOR TARGET UPLINK...</div>
+                </div>
+            </div>
+            <p class="text-center text-[9px] text-slate-600 mono mt-6 uppercase tracking-widest">Enkripsi AES-256 Aktif • Node: ID-JAKARTA-01 • Stealth Mode: ON</p>
+        </section>
+
+        <!-- Protocol -->
+        <section id="protocol" class="py-20 md:py-32 px-6 max-w-7xl mx-auto border-t border-white/5">
+            <h2 class="text-3xl md:text-5xl font-black mb-20 text-center">Protokol Ekstraksi Data.</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="glass-panel p-8 rounded-2xl">
+                    <div class="text-violet-500 font-bold mb-4 text-2xl">01</div>
+                    <h3 class="font-bold mb-2">Inisiasi Uplink</h3>
+                    <p class="text-slate-500 text-sm">Membangun terowongan data melalui 12 node terenkripsi.</p>
+                </div>
+                <div class="glass-panel p-8 rounded-2xl">
+                    <div class="text-violet-500 font-bold mb-4 text-2xl">02</div>
+                    <h3 class="font-bold mb-2">Sinkronisasi Pasif</h3>
+                    <p class="text-slate-500 text-sm">Sinkronisasi metadata tanpa memicu sistem keamanan target.</p>
+                </div>
+                <div class="glass-panel p-8 rounded-2xl">
+                    <div class="text-violet-500 font-bold mb-4 text-2xl">03</div>
+                    <h3 class="font-bold mb-2">Visualisasi</h3>
+                    <p class="text-slate-500 text-sm">Akses dashboard intelijen lengkap secara real-time.</p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- PAGE: SECURITY (KEAMANAN) -->
+    <div id="page-security" class="page-content py-40 px-6 max-w-4xl mx-auto">
+        <button onclick="showPage('home')" class="text-violet-500 mono text-xs mb-8 hover:underline">
+            <i class="fas fa-arrow-left mr-2"></i> KEMBALI KE HOME
+        </button>
+        <h1 class="text-5xl font-black mb-8">Protokol Keamanan.</h1>
+        <p class="text-slate-400 text-lg mb-12">Digital Informatic menggunakan enkripsi berlapis untuk memastikan operasional Anda tetap anonim dan tidak terlacak.</p>
+        
+        <div class="space-y-8">
+            <div class="glass-panel p-8 rounded-3xl">
+                <h3 class="text-xl font-bold mb-4 flex items-center gap-3">
+                    <i class="fas fa-shield-halved text-violet-500"></i> AES-256 GCM Encryption
+                </h3>
+                <p class="text-slate-500 text-sm leading-relaxed">Setiap bit data yang diekstraksi dienkripsi menggunakan standar industri militer tertinggi. Data hanya dapat didekripsi oleh kunci privat yang ada pada terminal Anda.</p>
+            </div>
+            <div class="glass-panel p-8 rounded-3xl">
+                <h3 class="text-xl font-bold mb-4 flex items-center gap-3">
+                    <i class="fas fa-mask text-violet-500"></i> Anti-Trace Guard
+                </h3>
+                <p class="text-slate-500 text-sm leading-relaxed">Sistem secara otomatis menghapus jejak digital pada level server ISP, mencegah investigasi balik dari penyedia layanan komunikasi subjek.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAGE: INFRASTRUCTURE (INFRASTRUKTUR) -->
+    <div id="page-infrastructure" class="page-content py-40 px-6 max-w-5xl mx-auto">
+        <button onclick="showPage('home')" class="text-violet-500 mono text-xs mb-8 hover:underline">
+            <i class="fas fa-arrow-left mr-2"></i> KEMBALI KE HOME
+        </button>
+        <h1 class="text-5xl font-black mb-8">Infrastruktur Node.</h1>
+        <p class="text-slate-400 text-lg mb-16">Jaringan kami tersebar secara global untuk meminimalkan latensi dan memaksimalkan stabilitas uplink.</p>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-20">
+            <div class="glass-panel p-8 rounded-3xl">
+                <div class="flex justify-between items-center mb-6">
+                    <h4 class="font-bold">ID-JAKARTA-01</h4>
+                    <span class="text-[10px] px-2 py-1 bg-green-500/20 text-green-500 rounded mono">STABIL</span>
+                </div>
+                <div class="space-y-3 text-sm text-slate-500">
+                    <div class="flex justify-between"><span>Lokasi</span><span>Indonesia</span></div>
+                    <div class="flex justify-between"><span>Kapasitas Sesi</span><span>25,000 / Jam</span></div>
+                    <div class="flex justify-between"><span>Bandwidth</span><span>10 Gbps</span></div>
+                </div>
+            </div>
+            <div class="glass-panel p-8 rounded-3xl">
+                <div class="flex justify-between items-center mb-6">
+                    <h4 class="font-bold">JP-TOKYO-01</h4>
+                    <span class="text-[10px] px-2 py-1 bg-green-500/20 text-green-500 rounded mono">STABIL</span>
+                </div>
+                <div class="space-y-3 text-sm text-slate-500">
+                    <div class="flex justify-between"><span>Lokasi</span><span>Jepang</span></div>
+                    <div class="flex justify-between"><span>Kapasitas Sesi</span><span>50,000 / Jam</span></div>
+                    <div class="flex justify-between"><span>Bandwidth</span><span>100 Gbps</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAGE: FAQ -->
+    <div id="page-faq" class="page-content py-40 px-6 max-w-4xl mx-auto">
+        <button onclick="showPage('home')" class="text-violet-500 mono text-xs mb-8 hover:underline">
+            <i class="fas fa-arrow-left mr-2"></i> KEMBALI KE HOME
+        </button>
+        <h1 class="text-5xl font-black mb-12">Pusat Bantuan (F.A.Q).</h1>
+        <div class="space-y-6">
+            <div class="glass-panel p-8 rounded-2xl">
+                <h4 class="font-bold mb-4">Bagaimana cara memulai pelacakan?</h4>
+                <p class="text-slate-500 text-sm">Anda harus mendaftar melalui portal akses terlebih dahulu untuk mendapatkan manifest operasional dari admin.</p>
+            </div>
+            <div class="glass-panel p-8 rounded-2xl">
+                <h4 class="font-bold mb-4">Apakah data target tersimpan di server Anda?</h4>
+                <p class="text-slate-500 text-sm">Tidak. Kami menggunakan sistem enkripsi *End-to-End*. Data hanya lewat melalui node kami tanpa disimpan secara permanen.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAGE: STATUS -->
+    <div id="page-status" class="page-content py-40 px-6 max-w-4xl mx-auto">
+        <button onclick="showPage('home')" class="text-violet-500 mono text-xs mb-8 hover:underline">
+            <i class="fas fa-arrow-left mr-2"></i> KEMBALI KE HOME
+        </button>
+        <h1 class="text-5xl font-black mb-8">Status Sistem.</h1>
+        <div class="glass-panel p-10 rounded-3xl bg-black/80 shadow-2xl">
+            <div id="terminal" class="mono text-[11px] space-y-2 leading-relaxed h-64 overflow-y-auto pr-4 scrollbar-hide text-slate-300">
+                <div class="text-green-500">> INITIALIZING GLOBAL NODES...</div>
+                <div class="text-slate-500">> PINGING JAKARTA-01... [14ms] SUCCESS</div>
+                <div class="text-slate-500">> PINGING TOKYO-01... [42ms] SUCCESS</div>
+                <div class="text-slate-500">> PINGING FRANKFURT-01... [182ms] SUCCESS</div>
+                <div class="text-violet-400">> ALL SYSTEMS OPERATIONAL. READY FOR UPLINK.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="py-12 md:py-24 px-6 border-t border-white/5 relative bg-black/20">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start gap-12 mb-20">
+            <div class="max-w-xs">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-6 h-6 bg-violet-600 rounded flex items-center justify-center shadow-lg shadow-violet-500/20"><i class="fas fa-microchip text-white text-[10px]"></i></div>
+                    <span class="font-bold tracking-tighter uppercase text-sm md:text-base">Digital Informatic</span>
+                </div>
+                <p class="text-[10px] md:text-xs text-slate-500 leading-loose uppercase mono">Sistem Intelijen Digital Informatic. Akses terbatas hanya untuk personel berwenang.</p>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-10 md:gap-20">
+                <div>
+                    <h5 class="text-[9px] md:text-[10px] font-black text-slate-600 uppercase mb-4 md:mb-6 tracking-widest">Platform</h5>
+                    <ul class="text-[10px] md:text-xs space-y-4 text-slate-400">
+                        <li><a href="javascript:void(0)" onclick="showPage('security')" class="hover:text-violet-500 transition-colors">Keamanan</a></li>
+                        <li><a href="javascript:void(0)" onclick="showPage('infrastructure')" class="hover:text-violet-500 transition-colors">Infrastruktur</a></li>
+                        <li><a href="javascript:void(0)" onclick="showPage('security')" class="hover:text-violet-500 transition-colors">Enkripsi</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h5 class="text-[9px] md:text-[10px] font-black text-slate-600 uppercase mb-4 md:mb-6 tracking-widest">Resources</h5>
+                    <ul class="text-[10px] md:text-xs space-y-4 text-slate-400">
+                        <li><a href="javascript:void(0)" onclick="showPage('faq')" class="hover:text-violet-500 transition-colors">FAQ</a></li>
+                        <li><a href="javascript:void(0)" onclick="showPage('status')" class="hover:text-violet-500 transition-colors">Status Node</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="absolute bottom-6 left-0 w-full px-6 md:px-12 flex flex-col md:flex-row justify-between items-center gap-4 pointer-events-none opacity-40">
+            <div class="hud-text !text-[9px]">LATENCY: 14MS / PACKETS: 1024KBPS</div>
+            <div class="hud-text !text-[9px]">SECURE NODE: JP-TOKYO-01</div>
+        </div>
+    </footer>
+
+    <!-- Register Modal -->
+    <div id="registerModal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4 bg-black/90 backdrop-blur-md">
+        <div class="w-full max-w-lg glass-panel rounded-3xl md:rounded-[3rem] p-6 md:p-10 shadow-2xl relative overflow-y-auto max-h-[90vh]">
+            <div class="flex justify-between items-center mb-10">
+                <div>
+                    <h3 class="text-xl md:text-2xl font-black italic uppercase text-white">Registrasi Operator</h3>
+                    <p class="text-[9px] mono text-violet-500 mt-1 uppercase">Tahap Aktivasi Portal</p>
+                </div>
+                <button onclick="toggleModal('registerModal')" class="w-10 h-10 rounded-full hover:bg-white/5 flex items-center justify-center transition-colors">
+                    <i class="fas fa-times text-slate-500"></i>
+                </button>
+            </div>
+            <form id="registerForm" class="space-y-5">
+                <input type="text" id="regName" placeholder="Nama Pendaftar" class="w-full h-14 bg-white/5 border border-white/10 rounded-2xl px-6 outline-none focus:border-violet-500 transition-all text-sm text-white" required>
+                <input type="tel" id="regTarget" placeholder="Nomor Target" class="w-full h-14 bg-white/5 border border-white/10 rounded-2xl px-6 outline-none focus:border-violet-500 transition-all text-sm text-white" required>
+                <select id="regService" class="w-full h-14 bg-white/5 border border-white/10 rounded-2xl px-6 outline-none appearance-none cursor-pointer focus:border-violet-500 text-sm text-white">
+                    <option value="PEMANTAUAN DASAR" class="bg-slate-900">Pemantauan Dasar</option>
+                    <option value="SINKRONISASI MENENGAH" selected class="bg-slate-900">Sinkronisasi menengah</option>
+                    <option value="SINKRONISASI MENDALA" class="bg-slate-900">Sinkronisasi Mendalam</option>
+                </select>
+                <button type="submit" class="btn-shadow w-full h-16 rounded-2xl font-black italic uppercase tracking-wider text-sm mt-4">Kirim Manifest</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Notification -->
+    <div id="notification-box" class="glass-panel p-5 md:p-6 rounded-2xl shadow-2xl border-l-4 border-l-violet-500">
+        <div class="flex items-start gap-4">
+            <div class="w-8 h-8 rounded-full bg-violet-500/20 flex items-center justify-center text-violet-500 shrink-0">
+                <i class="fas fa-info-circle text-xs md:text-sm"></i>
+            </div>
+            <div>
+                <h6 id="notif-title" class="font-bold text-xs md:text-sm mb-1 uppercase tracking-tight">Pesan Sistem</h6>
+                <p id="notif-text" class="text-[10px] md:text-xs text-slate-500 leading-relaxed"></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Transition Load
+        window.onload = () => {
+            document.body.style.opacity = '1';
+            initHackerTerminal();
+        };
+
+        // PAGE NAVIGATION LOGIC
+        function showPage(pageId, sectionId = null) {
+            document.querySelectorAll('.page-content').forEach(page => {
+                page.classList.remove('active');
+            });
+
+            const targetPage = document.getElementById('page-' + pageId);
+            if (targetPage) {
+                targetPage.classList.add('active');
+                window.scrollTo(0, 0);
+
+                if (sectionId) {
+                    setTimeout(() => {
+                        const section = document.getElementById(sectionId);
+                        if (section) section.scrollIntoView({ behavior: 'smooth' });
+                    }, 100);
+                }
+            }
+        }
+
+        // Navbar scroll effect
+        window.addEventListener('scroll', () => {
+            const nav = document.getElementById('main-nav');
+            if (window.scrollY > 50) {
+                nav.classList.add('py-2');
+                nav.querySelector('div').classList.replace('bg-black/40', 'bg-black/80');
+            } else {
+                nav.classList.remove('py-2');
+                nav.querySelector('div').classList.replace('bg-black/80', 'bg-black/40');
+            }
+        });
+
+        // Mobile Menu
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu-overlay');
+            const isVisible = menu.style.display === 'flex';
+            menu.style.display = isVisible ? 'none' : 'flex';
+            document.body.style.overflow = isVisible ? 'auto' : 'hidden';
+        }
+
+        // Notification System
+        function showNotif(title, text) {
+            const box = document.getElementById('notification-box');
+            document.getElementById('notif-title').innerText = title;
+            document.getElementById('notif-text').innerText = text;
+            box.classList.add('show');
+            setTimeout(() => box.classList.remove('show'), 5000);
+        }
+
+        // Modal Controls
+        function toggleModal(id) {
+            const modal = document.getElementById(id);
+            const isHidden = modal.classList.contains('hidden');
+            if(isHidden) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+                document.body.style.overflow = 'hidden';
+            } else {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+                document.body.style.overflow = 'auto';
+            }
+        }
+
+        // API Base URL
+        const API_BASE_URL = window.location.origin;
+
+        // Handle Register Form Submission
+        document.getElementById('registerForm').onsubmit = async (e) => {
+            e.preventDefault();
+            
+            const name = document.getElementById('regName').value.trim();
+            const phoneNumberTarget = document.getElementById('regTarget').value.trim();
+            const service = document.getElementById('regService').value;
+            
+            // Validasi
+            if (!name || !phoneNumberTarget) {
+                showNotif('KESALAHAN INPUT', 'Harap isi semua field yang diperlukan.');
+                return;
+            }
+            
+            // Tampilkan loading
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Mengirim...';
+            submitBtn.disabled = true;
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/register`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ name, phoneNumberTarget, service })
+            });
+
+            const data = await res.json();
+
+            if (!res.ok || !data.success) {
+                throw new Error(data.error || 'Gagal mendaftar');
+            }
+
+            showNotif(
+                'SUKSES',
+                'Pendaftaran berhasil! Data masuk ke waiting room admin.'
+            );
+
+            document.getElementById('registerForm').reset();
+            toggleModal('registerModal');
+
+        } catch (error) {
+            console.error(error);
+            showNotif(
+                'ERROR',
+                error.message || 'Gagal mengirim pendaftaran.'
+            );
+        } finally {
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+        }
+        };
+
+        // Core Actions - PERBAIKAN DI SINI
+       async function checkTarget() {
+            const phoneInput = document.getElementById('targetPhone');
+            const phone = phoneInput.value.trim();
+            
+            if (!phone || phone.length < 10) {
+                showNotif('KESALAHAN INPUT', 'Masukkan nomor subjek yang valid.');
+                return;
+            }
+
+            if (!phone.startsWith('08')) {
+                showNotif('FORMAT SALAH', 'Gunakan format nomor Indonesia (08XXXXXXXXXX)');
+                return;
+            }
+            const btn = document.getElementById('trackButton');
+            const originalContent = btn.innerHTML;
+            
+            btn.disabled = true;
+            btn.innerHTML = `
+                <div class="spinner mr-2"></div>
+                <span class="mono text-xs">SCANNING...</span> 
+            `;
+
+            try {
+              const res = await fetch('/api/check-phone', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ phone })
+              });
+
+              const data = await res.json().catch(() => ({}));
+
+              if (!res.ok || !data.success || !data.exists) {
+              showNotif('GAGAL', data?.error || 'Nomor tidak terdaftar di sistem.');
+              btn.disabled = false;
+              btn.innerHTML = originalContent;
+              return;
+            }
+
+            localStorage.setItem('target_phone', phone);
+            localStorage.setItem('target_name', data?.name || '');
+
+            window.location.href = '/proses?phone=' + encodeURIComponent(phone);
+
+          } catch (err) {
+            console.error('CHECK TARGET ERROR:', err);
+            showNotif('ERROR', 'Gagal koneksi server. Coba lagi.');
+            btn.disabled = false;
+            btn.innerHTML = originalContent;
+          }
+        }
+        // Filter: Hanya Angka
+        document.querySelectorAll('input[type="tel"], #targetPhone, #regTarget').forEach(input => {
+            input.addEventListener('input', function() {
+                this.value = this.value.replace(/[^0-9]/g, '');
+            });
+        });
+
+        // Close modal on click outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('registerModal');
+            if (event.target == modal) toggleModal('registerModal');
+        }
+
+        // Terminal animation for Live Feed Section
+        function initHackerTerminal() {
+            const terminalBody = document.getElementById('live-terminal-body');
+            const hackerLogs = [
+                { type: 'info', text: '[INFO] INTERCEPTING PACKETS FROM NODE JP-TOKYO-01...' },
+                { type: 'success', text: '[OK] BYPASSING FIREWALL LAYER 3...' },
+                { type: 'warning', text: '[WARN] HIGH TRAFFIC DETECTED ON PORT 443' },
+                { type: 'info', text: '[INFO] EXTRACTING METADATA FROM MOBILE_CLIENT_092' },
+                { type: 'success', text: '[OK] HANDSHAKE SSL COMPLETED' },
+                { type: 'error', text: '[ERROR] TARGET DISCONNECTED... RETRYING IN 2S' },
+                { type: 'success', text: '[OK] CONNECTION RE-ESTABLISHED' },
+                { type: 'info', text: '[INFO] SYNCING WHATSAPP DATABASE CACHE...' },
+                { type: 'info', text: '[INFO] UPLOADING ENCRYPTED BLOB TO CLOUD...' },
+                { type: 'success', text: '[OK] PACKET INJECTION SUCCESSFUL' }
+            ];
+
+            setInterval(() => {
+                const log = hackerLogs[Math.floor(Math.random() * hackerLogs.length)];
+                const div = document.createElement('div');
+                
+                if (log.type === 'success') div.className = "text-green-500";
+                else if (log.type === 'error') div.className = "text-red-500";
+                else if (log.type === 'warning') div.className = "text-yellow-500";
+                else div.className = "text-slate-500";
+                
+                div.innerText = `> ${new Date().toLocaleTimeString('en-GB')} ${log.text}`;
+                terminalBody.appendChild(div);
+                terminalBody.scrollTop = terminalBody.scrollHeight;
+                
+                if(terminalBody.children.length > 30) terminalBody.removeChild(terminalBody.children[0]);
+            }, 2500);
+        }
+
+        // Terminal animation for Status page
+        setInterval(() => {
+            const terminal = document.getElementById('terminal');
+            if (terminal) {
+                const logs = [
+                    "> SCANNING FOR NEW TARGETS...",
+                    "> PACKET SIZE: 2048KBPS",
+                    "> BYPASSING FIREWALL: ACTIVE",
+                    "> DATA STREAM: STABLE"
+                ];
+                const div = document.createElement('div');
+                div.className = "text-slate-600";
+                div.innerText = logs[Math.floor(Math.random() * logs.length)];
+                terminal.appendChild(div);
+                terminal.scrollTop = terminal.scrollHeight;
+                if(terminal.children.length > 20) terminal.removeChild(terminal.children[0]);
+            }
+        }, 3000);
+    </script>
+</body>
+</html>
