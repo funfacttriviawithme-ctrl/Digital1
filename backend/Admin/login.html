@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Portal | Digital Informatic</title>
+    <!-- Favicon -->
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="manifest" href="/site.webmanifest">
+    <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#8b5cf6">
+    <meta name="msapplication-TileColor" content="#050508">
+    <meta name="theme-color" content="#050508">
+    <!-- Fonts & Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;600;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        :root {
+            --accent: #8b5cf6;
+            --accent-soft: rgba(139, 92, 246, 0.1);
+            --bg-deep: #050508;
+            --surface: rgba(18, 18, 26, 0.75);
+            --border: rgba(255, 255, 255, 0.08);
+        }
+
+        body {
+            background-color: var(--bg-deep);
+            color: #e2e8f0;
+            font-family: 'Lexend', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+            /* Fitur Transition: Smooth Page Fade-In */
+            opacity: 0;
+            transition: opacity 0.8s;
+        }
+
+        .mono { font-family: 'Fira Code', monospace; }
+
+        /* Efek Latar Belakang */
+        .glow-orb {
+            position: fixed;
+            width: 60vw;
+            height: 60vw;
+            background: radial-gradient(circle, rgba(139, 92, 246, 0.08) 0%, transparent 70%);
+            border-radius: 50%;
+            z-index: -1;
+            filter: blur(80px);
+            pointer-events: none;
+        }
+
+        .bg-grid {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            background-image: radial-gradient(var(--border) 1px, transparent 1px);
+            background-size: 30px 30px;
+            mask-image: radial-gradient(circle at center, black, transparent 80%);
+        }
+
+        /* Panel Glassmorphism */
+        .login-card {
+            background: var(--surface);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 3rem;
+            width: 100%;
+            max-width: 450px;
+            padding: 3rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+            position: relative;
+            z-index: 10;
+            animation: cardEntrance 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        @keyframes cardEntrance {
+            from { opacity: 0; transform: translateY(30px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        /* Input Taktikal */
+        .input-group {
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+
+        .tactical-input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            padding: 1.25rem 4rem 1.25rem 3.5rem; /* Padding kanan disesuaikan untuk icon mata */
+            color: white;
+            font-size: 0.9rem;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .tactical-input:focus {
+            border-color: var(--accent);
+            background: rgba(139, 92, 246, 0.05);
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.1);
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 1.25rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #475569;
+            transition: 0.3s;
+        }
+
+        .tactical-input:focus + .input-icon {
+            color: var(--accent);
+        }
+
+        /* Tombol Akses */
+        .btn-access {
+            width: 100%;
+            background: var(--accent);
+            color: white;
+            padding: 1.25rem;
+            border-radius: 1rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            font-size: 0.8rem;
+            margin-top: 1rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 10px 20px rgba(139, 92, 246, 0.2);
+        }
+
+        .btn-access:hover {
+            transform: translateY(-2px);
+            background: #7c3aed;
+            box-shadow: 0 15px 30px rgba(139, 92, 246, 0.4);
+        }
+
+        .btn-access:active { transform: translateY(0); }
+
+        /* Status HUD */
+        .hud-bar {
+            position: absolute;
+            top: -50px;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            pointer-events: none;
+        }
+
+        .hud-text {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--accent);
+            opacity: 0.6;
+        }
+
+        .lock-pulse {
+            animation: pulse 2s infinite ease-in-out;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 0.2; }
+            50% { transform: scale(1.1); opacity: 0.5; }
+            100% { transform: scale(1); opacity: 0.2; }
+        }
+
+        /* Password Toggle */
+        .password-toggle {
+            position: absolute;
+            right: 1.25rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #475569;
+            cursor: pointer;
+            transition: 0.3s;
+            z-index: 20;
+        }
+
+        .password-toggle:hover {
+            color: var(--accent);
+        }
+    </style>
+</head>
+<body class="p-6">
+    <div class="glow-orb" style="top: -10%; left: -10%;"></div>
+    <div class="glow-orb" style="bottom: -10%; right: -10%; background: radial-gradient(circle, rgba(59, 130, 246, 0.05) 0%, transparent 70%);"></div>
+    <div class="bg-grid"></div>
+
+    <!-- Background Icon Decoration - TETAP UTUH -->
+    <div class="fixed inset-0 flex items-center justify-center pointer-events-none opacity-[0.02] text-[40rem]">
+        <i class="fas fa-shield-halved"></i>
+    </div>
+
+    <div class="relative">
+        <!-- HUD Indicators - TETAP UTUH -->
+        <div class="hud-bar px-6">
+            <span class="hud-text">LEVEL: ADMINISTRATIVE</span>
+            <span class="hud-text">SEC: AES-256_ACTIVE</span>
+        </div>
+
+        <main class="login-card">
+            <!-- Header Section -->
+            <div class="text-center mb-12">
+                <div class="w-20 h-20 bg-violet-600/10 rounded-3xl flex items-center justify-center mx-auto mb-6 border border-violet-600/30 relative">
+                    <i class="fas fa-user-shield text-violet-500 text-3xl"></i>
+                    <div class="absolute -inset-4 border border-violet-500/10 rounded-full lock-pulse"></div>
+                </div>
+                <h1 class="text-2xl font-black italic tracking-tighter uppercase text-white mb-2">Central <span class="text-violet-500">Panel</span></h1>
+                <p class="mono text-[10px] text-slate-500 tracking-[0.3em] uppercase">Digital Informatic Operator Access</p>
+            </div>
+
+            <!-- Login Form -->
+            <form id="adminLoginForm" class="space-y-2">
+                <div class="input-group">
+                    <input type="text" id="adminID" class="tactical-input" placeholder="ID OPERATOR" required autocomplete="off">
+                    <i class="fas fa-id-badge input-icon"></i>
+                </div>
+
+                <div class="input-group">
+                    <input type="password" id="adminKey" class="tactical-input" placeholder="KUNCI KEAMANAN" required>
+                    <i class="fas fa-key input-icon"></i>
+                    <!-- Ikon Mata (Password Toggle) -->
+                    <i class="fas fa-eye password-toggle" id="togglePassword"></i>
+                </div>
+
+                <!-- Checkbox & Link - TETAP UTUH -->
+                <div class="flex items-center justify-between px-2 mb-6">
+                    <label class="flex items-center gap-2 cursor-pointer group">
+                        <input type="checkbox" class="hidden">
+                        <div class="w-4 h-4 border border-white/10 rounded bg-white/5 flex items-center justify-center group-hover:border-violet-500 transition-all">
+                            <i class="fas fa-check text-[8px] text-transparent"></i>
+                        </div>
+                        <span class="text-[10px] text-slate-500 uppercase mono">Stay Tunneled</span>
+                    </label>
+                    <a href="#" class="text-[10px] text-violet-500 hover:text-violet-400 uppercase mono font-bold">Lost Key?</a>
+                </div>
+
+                <button type="submit" id="submitBtn" class="btn-access">
+                    Inisialisasi Uplink
+                </button>
+            </form>
+
+            <!-- Loading State -->
+            <div id="loadingState" class="hidden flex-col items-center justify-center py-4">
+                <div class="w-8 h-8 border-2 border-violet-500/20 border-t-violet-500 rounded-full animate-spin mb-4"></div>
+                <p class="mono text-[9px] text-slate-500 uppercase tracking-widest animate-pulse">Authenticating_Credentials...</p>
+            </div>
+
+            <!-- Security Footer - TETAP UTUH -->
+            <div class="mt-12 pt-8 border-t border-white/5 text-center">
+                <p class="text-[9px] text-slate-600 uppercase mono leading-loose">
+                    Akses ini diawasi secara ketat. <br>
+                    Pelanggaran protokol akan memicu penguncian Node otomatis.
+                </p>
+            </div>
+        </main>
+
+        <!-- Bottom HUD - TETAP UTUH -->
+        <div class="absolute -bottom-12 left-0 w-full flex justify-center gap-8 opacity-40">
+            <div class="hud-text !text-[8px]">NODE: ID-JKT-ADMIN-01</div>
+            <div class="hud-text !text-[8px]">UPLINK: STABLE</div>
+            <div class="hud-text !text-[8px]">BYPASS: ENABLED</div>
+        </div>
+    </div>
+
+    <script>
+        // Transition: Smooth Page Fade-In
+        window.onload = () => document.body.style.opacity = '1';
+
+        const loginForm = document.getElementById('adminLoginForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const loadingState = document.getElementById('loadingState');
+        const togglePassword = document.getElementById('togglePassword');
+        const adminKey = document.getElementById('adminKey');
+        const API_BASE_URL = window.location.origin;
+
+        // Fitur Ikon Mata (Password Toggle)
+        togglePassword.addEventListener('click', () => {
+            const type = adminKey.getAttribute('type') === 'password' ? 'text' : 'password';
+            adminKey.setAttribute('type', type);
+            togglePassword.classList.toggle('fa-eye');
+            togglePassword.classList.toggle('fa-eye-slash');
+        });
+
+        loginForm.onsubmit = async (e) => {
+            e.preventDefault();
+            
+            const id = document.getElementById('adminID').value.trim();
+            const key = adminKey.value;
+
+            // Validasi input
+            if (id.length < 4 || key.length < 4) {
+                showError('ID dan Kunci minimal harus 4 karakter.');
+                return;
+            }
+
+            // Tampilkan loading
+            loginForm.classList.add('hidden');
+            loadingState.classList.remove('hidden');
+            loadingState.classList.add('flex');
+
+            try {
+                console.log('🔐 Attempting login for:', id);
+                
+                // Kirim ke API backend
+                const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: id,
+                        password: key
+                    })
+                });
+
+                const data = await response.json();
+                console.log('Login response:', data);
+
+                if (data.success === true) {
+                    localStorage.setItem("admin", JSON.stringify({
+                        username: data.user?.username || data.username,
+                        role: data.user?.role || data.role
+                }));
+
+                    localStorage.setItem("admin_role", data.user?.role || data.role);
+                    localStorage.setItem("admin_id", data.user?.id || data.username);
+
+                    // Tampilkan success message
+                    loadingState.innerHTML = `
+                        <i class="fas fa-check-circle text-green-500 text-4xl mb-4"></i>
+                        <p class="mono text-[10px] text-green-500 uppercase tracking-widest">
+                            Access_Granted: Welcome ${(data.user?.role || data.role) === 'superadmin' ? 'Overlord' : 'Operator'}
+                        </p>
+                    `;
+                    
+                    // Redirect ke dashboard dengan parameter
+                    setTimeout(() => {
+
+                        window.location.href = "/admin/dashboard.html";
+                    }, 1000);
+                    
+                } else {
+                    throw new Error(data.error || 'Authentication failed');
+                }
+            } catch (err) {
+                console.error('Login error:', err);
+                loadingState.classList.add('hidden');
+                loginForm.classList.remove('hidden');
+                showError('AUTHENTICATION_FAILED: INVALID_CREDENTIALS');
+            }
+        };
+
+        // Helper function untuk show error
+        function showError(message) {
+            // Hapus error message sebelumnya jika ada
+            const existingError = document.querySelector('.error-message');
+            if (existingError) existingError.remove();
+            
+            // Tambah error message baru
+            const msg = document.createElement('p');
+            msg.className = "error-message text-red-500 text-[10px] mono text-center mt-4 animate-pulse";
+            msg.innerText = message;
+            loginForm.appendChild(msg);
+            
+            // Auto remove setelah 3 detik
+            setTimeout(() => {
+                if (msg.parentNode) msg.remove();
+            }, 3000);
+        }
+
+        // UI Logic untuk checkbox (tetap sama)
+        document.querySelector('label.group').onclick = function() {
+            const check = this.querySelector('.fa-check');
+            check.classList.toggle('text-transparent');
+            check.classList.toggle('text-violet-500');
+        };
+    </script>
+</body> 
+</html>
