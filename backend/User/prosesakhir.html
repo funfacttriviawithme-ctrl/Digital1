@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Terima Kasih | Digital Informatic</title>
+    <!-- Favicon -->
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="manifest" href="/site.webmanifest">
+    <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#8b5cf6">
+    <meta name="msapplication-TileColor" content="#050508">
+    <meta name="theme-color" content="#050508">
+    <!-- Fonts & Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;600;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        :root {
+            --accent: #8b5cf6;
+            --bg-deep: #020205;
+            --surface: rgba(13, 13, 20, 0.85);
+            --border: rgba(255, 255, 255, 0.08);
+        }
+
+        body {
+            background-color: var(--bg-deep);
+            color: #e2e8f0;
+            font-family: 'Lexend', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            padding: 1.5rem;
+            opacity: 0;
+            transition: opacity 0.8s;
+        }
+
+        .ambient-glow {
+            position: fixed;
+            width: 70vw;
+            height: 70vw;
+            background: radial-gradient(circle, rgba(139, 92, 246, 0.05) 0%, transparent 70%);
+            z-index: -1;
+            border-radius: 50%;
+            pointer-events: none;
+            animation: glowMove 20s infinite alternate ease-in-out;
+        }
+
+        @keyframes glowMove {
+            0% { transform: translate(-20%, -20%) scale(1); }
+            100% { transform: translate(20%, 20%) scale(1.2); }
+        }
+
+        .glass-card {
+            background: var(--surface);
+            backdrop-filter: blur(30px);
+            border: 1px solid var(--border);
+            border-radius: 3rem;
+            padding: 3.5rem 2rem;
+            max-width: 550px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.8);
+            position: relative;
+            animation: cardFadeIn 1s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+            transition: all 0.4s ease;
+        }
+
+        .glass-card:hover {
+            border-color: rgba(139, 92, 246, 0.3);
+            background: rgba(18, 18, 26, 0.9);
+        }
+
+        @keyframes cardFadeIn {
+            from { opacity: 0; transform: translateY(30px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .check-circle {
+            width: 100px;
+            height: 100px;
+            background: rgba(139, 92, 246, 0.1);
+            border: 2px solid var(--accent);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 2.5rem;
+            box-shadow: 0 0 30px rgba(139, 92, 246, 0.2);
+            font-size: 3rem;
+            color: var(--accent);
+            animation: pulseIcon 2s infinite;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .check-circle::after {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            background: linear-gradient(45deg, transparent, var(--accent), transparent);
+            border-radius: 50%;
+            animation: rotateRing 3s linear infinite;
+        }
+
+        @keyframes rotateRing {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes pulseIcon {
+            0% { transform: scale(1); box-shadow: 0 0 0px rgba(139, 92, 246, 0); }
+            50% { transform: scale(1.05); box-shadow: 0 0 40px rgba(139, 92, 246, 0.3); }
+            100% { transform: scale(1); box-shadow: 0 0 0px rgba(139, 92, 246, 0); }
+        }
+
+        .btn-home {
+            background: var(--accent);
+            color: white;
+            padding: 1.25rem 2.5rem;
+            border-radius: 1rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            font-size: 0.75rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 25px rgba(139, 92, 246, 0.3);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            cursor: pointer;
+            border: none;
+            outline: none;
+        }
+
+        .btn-home:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(139, 92, 246, 0.5);
+            background: #7c3aed;
+        }
+
+        .mono { font-family: 'Fira Code', monospace; }
+        
+        /* Notification */
+        #notification-box {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            left: 20px;
+            z-index: 9999;
+            transform: translateY(200%);
+            transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @media (min-width: 768px) {
+            #notification-box {
+                left: auto;
+                width: 380px;
+            }
+        }
+
+        #notification-box.show { transform: translateY(0); }
+    </style>
+</head>
+<body>
+    <div class="ambient-glow"></div>
+    
+    <!-- Notification -->
+    <div id="notification-box" class="glass-panel p-5 md:p-6 rounded-2xl shadow-2xl border-l-4 border-l-violet-500">
+        <div class="flex items-start gap-4">
+            <div class="w-8 h-8 rounded-full bg-violet-500/20 flex items-center justify-center text-violet-500 shrink-0">
+                <i class="fas fa-info-circle text-xs md:text-sm"></i>
+            </div>
+            <div>
+                <h6 id="notif-title" class="font-bold text-xs md:text-sm mb-1 uppercase tracking-tight">Pesan Sistem</h6>
+                <p id="notif-text" class="text-[10px] md:text-xs text-slate-500 leading-relaxed"></p>
+            </div>
+        </div>
+    </div>
+
+    <main class="glass-card">
+        <!-- Decoration -->
+        <div class="absolute -top-12 left-1/2 -translate-x-1/2 w-24 h-24 bg-violet-600/10 blur-3xl rounded-full"></div>
+        
+        <div class="check-circle">
+            <i class="fas fa-check"></i>
+        </div>
+
+        <h1 class="text-3xl md:text-4xl font-black italic uppercase tracking-tighter text-white mb-6">
+            Terima <span class="text-violet-500">Kasih</span>
+        </h1>
+
+        <p class="text-slate-300 text-sm md:text-base leading-relaxed mb-8 px-4">
+            Terima kasih telah mempercayai <span class="text-violet-400 font-bold italic">Digital Informatic</span> sebagai solusi intelijen Anda. Operasional penarikan data telah selesai diproses oleh sistem pusat kami.
+        </p>
+
+        <div class="bg-white/5 rounded-2xl p-6 border border-white/5 mb-10 mx-4 hover:bg-white/10 transition-all duration-300">
+            <div class="flex items-center gap-4 text-left">
+                <div class="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center text-green-500 shrink-0 border border-green-500/20">
+                    <i class="fab fa-whatsapp text-xl"></i>
+                </div>
+                <div>
+                    <p class="text-[10px] mono text-slate-500 uppercase tracking-widest mb-1">Informasi Penting</p>
+                    <p class="text-xs font-semibold text-slate-200">Silahkan cek inbox <span class="text-green-500">WhatsApp</span> Anda secara berkala untuk penerimaan data hasil tracking atau pelacakan Anda.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Session Information -->
+        <div class="mb-8 bg-white/5 rounded-2xl p-4 border border-white/5 hover:bg-white/10 transition-all duration-300">
+            <div class="grid grid-cols-2 gap-4 text-center">
+                <div>
+                    <p class="text-[9px] mono text-slate-500 uppercase tracking-widest mb-1">Sesi ID</p>
+                    <p class="text-xs font-bold text-violet-400 mono" id="sessionId">DIG-INF-XXXX</p>
+                </div>
+                <div>
+                    <p class="text-[9px] mono text-slate-500 uppercase tracking-widest mb-1">Status</p>
+                    <p class="text-xs font-bold text-green-500">COMPLETED</p>
+                </div>
+            </div>
+        </div>
+
+        <button onclick="returnToHome()" class="btn-home">
+            <i class="fas fa-house"></i>
+            Kembali ke Beranda
+        </button>
+
+        <div class="mt-12 pt-8 border-t border-white/5">
+            <p class="text-[9px] text-slate-600 uppercase mono tracking-[0.3em]">
+                Session Terminated • Secure Logout Complete
+            </p>
+        </div>
+    </main>
+
+    <script>
+        window.onload = () => {
+            document.body.style.opacity = '1';
+            initThankYouPage();
+        };
+
+        function showNotif(title, text) {
+            const box = document.getElementById('notification-box');
+            document.getElementById('notif-title').innerText = title;
+            document.getElementById('notif-text').innerText = text;
+            box.classList.add('show');
+            setTimeout(() => box.classList.remove('show'), 5000);
+        }
+
+        function initThankYouPage() {
+            // Generate random session ID
+            const sessionId = 'DIG-INF-' + Math.floor(1000 + Math.random() * 9000);
+            document.getElementById('sessionId').innerText = sessionId;
+            
+            // Simpan sesi terakhir ke localStorage
+            const sessionData = {
+                id: sessionId,
+                timestamp: new Date().toISOString(),
+                module: localStorage.getItem('selected_module') || 'Tidak ada',
+                target: localStorage.getItem('target_phone') || 'Tidak ada'
+            };
+            
+            localStorage.setItem('last_session', JSON.stringify(sessionData));
+            
+            // Tampilkan notifikasi
+            showNotif('SELESAI', 'Operasional intelijen telah berhasil diselesaikan.');
+            
+            // Clear beberapa data sesi setelah delay
+            setTimeout(() => {
+                // Hapus data sensitif, tapi simpan log sesi
+                localStorage.removeItem('selected_module');
+                localStorage.removeItem('activation_success');
+                localStorage.removeItem('activation_code');
+                localStorage.removeItem('report_viewed');
+                
+                showNotif('PEMBERSIHAN', 'Data sensitif telah dihapus dari cache browser.');
+            }, 3000);
+            
+            // Animasi tambahan untuk check circle
+            const checkCircle = document.querySelector('.check-circle');
+            setTimeout(() => {
+                checkCircle.style.animation = 'pulseIcon 2s infinite, rotateRing 3s linear infinite';
+            }, 500);
+        }
+
+        function returnToHome() {
+            // Tambahkan efek loading sebelum redirect
+            const btn = document.querySelector('.btn-home');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i> Mengalihkan...`;
+            btn.disabled = true;
+            
+            showNotif('KELUAR', 'Mengalihkan ke halaman utama...');
+            
+            // Simulasi proses cleanup sebelum redirect
+            setTimeout(() => {
+                // Redirect ke home
+                window.location.href = 'index.html';
+            }, 1500);
+        }
+    </script>
+</body>
+</html>

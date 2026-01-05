@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Connection Authority | Digital Informatic</title>
+    <!-- Fonts & Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;600;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        :root {
+            --accent: #8b5cf6;
+            --accent-soft: rgba(139, 92, 246, 0.1);
+            --bg-deep: #050508;
+            --surface: rgba(18, 18, 26, 0.7);
+            --border: rgba(255, 255, 255, 0.06);
+        }
+
+        body {
+            background-color: var(--bg-deep);
+            color: #e2e8f0;
+            font-family: 'Lexend', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.8s;
+        }
+
+        .mono { font-family: 'Fira Code', monospace; }
+
+        /* Background Effects */
+        .glow-orb {
+            position: fixed;
+            width: 50vw;
+            height: 50vw;
+            background: radial-gradient(circle, rgba(139, 92, 246, 0.05) 0%, transparent 70%);
+            border-radius: 50%;
+            z-index: -1;
+            filter: blur(60px);
+            pointer-events: none;
+        }
+
+        .bg-grid {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            background-image: radial-gradient(var(--border) 1px, transparent 1px);
+            background-size: 40px 40px;
+            mask-image: linear-gradient(to bottom, black, transparent);
+        }
+
+        /* Glass Components */
+        .glass-panel {
+            background: var(--surface);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border);
+            border-radius: 3rem;
+            transition: all 0.4s ease;
+        }
+
+        .glass-panel:hover {
+            border-color: rgba(139, 92, 246, 0.3);
+            background: rgba(18, 18, 26, 0.9);
+        }
+
+        .hud-text {
+            font-family: 'Fira Code', monospace;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--accent);
+        }
+
+        .progress-bar-inner {
+            height: 100%;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+            background-size: 200% 100%;
+            animation: flow 2s infinite linear;
+            box-shadow: 0 0 15px var(--accent);
+        }
+
+        @keyframes flow {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        .btn-shadow {
+            background: var(--accent);
+            color: white;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 20px rgba(139, 92, 246, 0.2);
+        }
+
+        .btn-shadow:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(139, 92, 246, 0.4);
+            background: #7c3aed;
+        }
+
+        /* Modal Overlay */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.95);
+            backdrop-filter: blur(15px);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            pointer-events: auto;
+        }
+
+        .modal-overlay.active { 
+            display: flex;
+        }
+
+        .input-pill {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            border-radius: 9999px;
+            padding: 1rem 1.5rem;
+            color: white;
+            outline: none;
+            text-align: center;
+            letter-spacing: 0.5em;
+            transition: all 0.3s ease;
+        }
+
+        .input-pill:focus {
+            border-color: var(--accent);
+            background: rgba(139, 92, 246, 0.05);
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.1);
+        }
+        
+        /* Loading Animation */
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(139, 92, 246, 0.3);
+            border-radius: 50%;
+            border-top-color: #8b5cf6;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Notification */
+        #notification-box {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            left: 20px;
+            z-index: 9999;
+            transform: translateY(200%);
+            transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @media (min-width: 768px) {
+            #notification-box {
+                left: auto;
+                width: 380px;
+            }
+        }
+
+        #notification-box.show { transform: translateY(0); }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <div class="glow-orb" style="top: -10%; left: -10%;"></div>
+    <div class="glow-orb" style="bottom: -10%; right: -10%; background: radial-gradient(circle, rgba(59, 130, 246, 0.05) 0%, transparent 70%);"></div>
+    <div class="bg-grid"></div>
+    
+    <!-- Notification -->
+    <div id="notification-box" class="glass-panel p-5 md:p-6 rounded-2xl shadow-2xl border-l-4 border-l-violet-500">
+        <div class="flex items-start gap-4">
+            <div class="w-8 h-8 rounded-full bg-violet-500/20 flex items-center justify-center text-violet-500 shrink-0">
+                <i class="fas fa-info-circle text-xs md:text-sm"></i>
+            </div>
+            <div>
+                <h6 id="notif-title" class="font-bold text-xs md:text-sm mb-1 uppercase tracking-tight">Pesan Sistem</h6>
+                <p id="notif-text" class="text-[10px] md:text-xs text-slate-500 leading-relaxed"></p>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-4xl w-full">
+        <!-- Header HUD -->
+        <div class="flex justify-between items-center mb-10 px-6">
+            <div class="flex items-center gap-4">
+                <div class="w-10 h-10 bg-violet-600/10 rounded-xl flex items-center justify-center border border-violet-600/30 shadow-lg shadow-violet-900/20">
+                    <i class="fas fa-shield-halved text-violet-500 text-sm"></i>
+                </div>
+                <div>
+                    <h2 class="hud-text text-[10px] font-bold">Otoritas Enkripsi</h2>
+                    <p class="mono text-[9px] text-slate-500 tracking-widest">AES-256 GCM ACTIVE</p>
+                </div>
+            </div>
+            <div class="text-right">
+                <p class="hud-text text-[10px] text-white" id="currentTime">00:00:00</p>
+                <p class="mono text-[8px] text-green-500 tracking-tighter">NODE: SECURE-TUNNEL-09</p>
+            </div>
+        </div>
+
+        <!-- Main Card -->
+        <div class="glass-panel p-8 md:p-16 text-center border-t-2 border-t-violet-500 relative shadow-2xl">
+            <!-- Corner Accents -->
+            <div class="absolute top-0 left-0 w-8 h-8 border-l-2 border-t-2 border-violet-500/40 rounded-tl-[2.5rem]"></div>
+            <div class="absolute bottom-0 right-0 w-8 h-8 border-r-2 border-b-2 border-violet-500/40 rounded-br-[2.5rem]"></div>
+
+            <h1 class="text-3xl md:text-5xl font-extrabold mb-4 tracking-tighter italic uppercase text-white">
+                Selamat Datang, <span id="userName" class="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-indigo-500">OPERATOR</span>
+            </h1>
+            <p class="mono text-slate-500 text-[10px] tracking-[0.3em] mb-12 uppercase">Kredensial Jalur RDP Terverifikasi</p>
+
+            <!-- Selected Module Display -->
+            <div class="mb-16">
+                <div id="moduleIconContainer" class="text-6xl md:text-7xl text-violet-500 mb-6 flex justify-center animate-pulse">
+                    <i class="fas fa-spinner fa-spin"></i>
+                </div>
+                <h3 class="text-xl md:text-2xl font-black uppercase tracking-widest italic" id="moduleName">Menyiapkan Modul...</h3>
+            </div>
+
+            <!-- Persuasive Text -->
+            <div class="max-w-2xl mx-auto mb-16">
+                <div class="p-8 bg-white/[0.02] rounded-[2rem] border border-white/5 text-left relative overflow-hidden group hover:bg-white/[0.04] transition-all">
+                    <div class="absolute top-0 left-0 w-1.5 h-full bg-violet-600 shadow-[0_0_15px_#8b5cf6]"></div>
+                    <p class="text-sm md:text-base leading-relaxed text-slate-400">
+                        Sistem <span class="text-violet-400 font-bold">Digital Informatic</span> telah memvalidasi jalur koneksi Anda. Anda saat ini terhubung melalui <span class="italic">Private Tunnel</span> terenkripsi yang menjamin anonimitas mutlak. Seluruh paket data ekstraksi akan melalui dekripsi real-time di server pusat sebelum ditampilkan pada terminal Anda.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Loading Status -->
+            <div class="space-y-6 max-w-xl mx-auto">
+                <div class="flex justify-between items-end mono text-[10px] uppercase tracking-widest">
+                    <span id="statusMessage" class="text-slate-500">Membangun Jaringan Node...</span>
+                    <span id="percentProgress" class="text-violet-500 font-bold">0%</span>
+                </div>
+                <div class="w-full h-1.5 bg-white/5 rounded-full overflow-hidden border border-white/5">
+                    <div id="progressBar" class="progress-bar-inner" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <!-- HASIL BUTTON -->
+            <div id="resultButtonContainer" class="mt-16 hidden animate-in fade-in zoom-in duration-700">
+                <button onclick="openActivationModal()" class="btn-shadow px-12 py-5 rounded-full text-sm font-black uppercase tracking-[0.2em] flex items-center justify-center mx-auto gap-3">
+                    <span>Lihat Hasil Ekstraksi</span>
+                    <i class="fas fa-arrow-right text-xs"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Trust Footer -->
+        <div class="mt-10 grid grid-cols-3 gap-6 opacity-30 px-6">
+            <div class="text-center">
+                <i class="fas fa-mask text-xl mb-3 text-violet-400"></i>
+                <p class="mono text-[8px] uppercase tracking-widest font-bold">100% Anonymous</p>
+            </div>
+            <div class="text-center border-x border-white/10">
+                <i class="fas fa-lock text-xl mb-3 text-violet-400"></i>
+                <p class="mono text-[8px] uppercase tracking-widest font-bold">E2E Encrypted</p>
+            </div>
+            <div class="text-center">
+                <i class="fas fa-check-double text-xl mb-3 text-violet-400"></i>
+                <p class="mono text-[8px] uppercase tracking-widest font-bold">Verified Node</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ACTIVATION MODAL -->
+    <div id="activationModal" class="modal-overlay">
+        <div class="glass-panel p-8 md:p-12 max-w-md w-full relative animate-in zoom-in-95 duration-300 bg-slate-950/80">
+            <button onclick="closeActivationModal()" class="absolute top-8 right-8 text-slate-500 hover:text-white transition-colors">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+            
+            <div class="text-center mb-10">
+                <div class="w-20 h-20 bg-violet-600/10 rounded-3xl flex items-center justify-center mx-auto mb-6 border border-violet-600/30 shadow-lg shadow-violet-900/20">
+                    <i class="fas fa-unlock-keyhole text-violet-500 text-3xl"></i>
+                </div>
+                <h3 class="text-2xl font-black uppercase italic tracking-tighter text-white">Otorisasi Akses</h3>
+                <p class="mono text-[10px] text-slate-500 mt-3 tracking-widest uppercase">Masukkan Kode Aktivasi untuk Mendekripsi Laporan</p>
+            </div>
+
+            <div class="space-y-6">
+         <div class="relative">
+  <input 
+    type="tel" 
+    id="activationCode" 
+    inputmode="numeric"
+    patern="[0-9]*"
+    autocomplete="off"
+    placeholder="••••••••" 
+    class="input-pill w-full text-xl pr-14" 
+    maxlength="4"
+  >
+
+  <button 
+    type="button"
+    id="toggleEye"
+    class="absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition"
+    aria-label="Toggle visibility"
+  >
+    <i class="fas fa-eye"></i>
+  </button>
+</div>
+
+                <button onclick="verifyCode()" id="verifyBtn" class="btn-shadow w-full py-5 rounded-full font-black uppercase text-xs tracking-widest">
+                    Dekripsi Laporan Sekarang
+                </button>
+                
+                <div id="activationError" class="hidden text-red-500 text-[10px] text-center font-bold uppercase tracking-[0.2em] mt-2 animate-pulse">
+                    <i class="fas fa-triangle-exclamation mr-2"></i> Kode Aktivasi Tidak Valid
+                </div>
+            </div>
+            
+            <p class="mt-10 text-center text-[8px] mono text-slate-600 uppercase tracking-widest leading-loose">
+                Hubungi administrator pusat <br> untuk mendapatkan lisensi aktivasi.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        window.onload = () => {
+            document.body.style.opacity = '1';
+            initialize();
+        };
+
+        const iconMap = {
+            'WhatsApp': 'fab fa-whatsapp text-green-500',
+            'Instagram': 'fab fa-instagram text-pink-500',
+            'Tracking Kamera': 'fas fa-camera text-violet-400',
+            'Lokasi': 'fas fa-location-dot text-red-500',
+            'Facebook': 'fab fa-facebook text-blue-500',
+            'Galeri': 'fas fa-images text-amber-500',
+            'Panggilan': 'fas fa-phone text-indigo-400',
+            'Pesan Terhapus': 'fas fa-trash-can text-purple-500'
+        };
+
+        function showNotif(title, text) {
+            const box = document.getElementById('notification-box');
+            document.getElementById('notif-title').innerText = title;
+            document.getElementById('notif-text').innerText = text;
+            box.classList.add('show');
+            setTimeout(() => box.classList.remove('show'), 5000);
+        }
+
+        async function initialize() {
+            // Ambil data dari localStorage
+            const selectedModule = localStorage.getItem('selected_module') || 'Modul Utama';
+            const targetPhone = localStorage.getItem('target_phone') || '+62-XXX-XXXX-XX';
+
+            const storedName = localStorage.getItem('target_name');
+            const userName = storedName && storedName.trim() ? storedName : 'OPERATOR';
+
+            document.getElementById('userName').innerText = userName.toUpperCase();
+            if (!storedName || !storedName.trim()) {
+            console.warn('target_name kosong. Pastikan checkTarget() menyimpan target_name.');
+            }
+            const iconClass = iconMap[selectedModule] || 'fas fa-microchip';
+            document.getElementById('moduleIconContainer').innerHTML = `<i class="${iconClass}"></i>`;
+            document.getElementById('moduleName').innerText = selectedModule;
+
+            // Tampilkan notifikasi
+            showNotif('SELAMAT DATANG', `Otentikasi RDP berhasil untuk target ${targetPhone}`);
+
+            // Start Logic
+            startSimulation();
+        }
+
+        function startSimulation() {
+            let progress = 0;
+            const bar = document.getElementById('progressBar');
+            const percentText = document.getElementById('percentProgress');
+            const statusMsg = document.getElementById('statusMessage');
+            const resultBtn = document.getElementById('resultButtonContainer');
+            
+            const messages = [
+                "Inisialisasi Jalur Satelit...",
+                "Otentikasi Handshake RDP...",
+                "Tunneling AES-256 Encrypted...",
+                "Penetrasi Database Target...",
+                "Sinkronisasi Metadata...",
+                "PROSES SELESAI"
+            ];
+
+            const interval = setInterval(() => {
+                progress += Math.floor(Math.random() * 2) + 1;
+                if (progress > 100) progress = 100;
+
+                bar.style.width = progress + '%';
+                percentText.innerText = progress + '%';
+
+                const msgIndex = Math.floor((progress / 100) * (messages.length - 1));
+                if (messages[msgIndex]) statusMsg.innerText = messages[msgIndex];
+
+                if (progress === 100) {
+                    clearInterval(interval);
+                    statusMsg.innerText = "Paket Intelijen Siap";
+                    statusMsg.classList.replace('text-slate-500', 'text-violet-400');
+                    statusMsg.classList.add('font-bold');
+                    resultBtn.classList.remove('hidden');
+                    showNotif('SUKSES', 'Ekstraksi data selesai. Klik tombol untuk melihat hasil.');
+                }
+            }, 120);
+        }
+
+        function openActivationModal() {
+            const modal = document.getElementById('activationModal');
+            const input = document.getElementById('activationCode');
+
+            modal.classList.add('active');
+            input.value = '';
+            
+            setTimeout(() => {
+               input.focus();
+            }, 150);
+        }
+
+        function closeActivationModal() {
+            document.getElementById('activationModal').classList.remove('active');
+            document.getElementById('activationError').classList.add('hidden');
+            document.getElementById('activationCode').value = '';
+        }
+        function getLast4Digits(phone) {
+            if (!phone) return null;
+            const digits = phone.replace(/\D/g, ''); // buang +62, -, spasi
+            return digits.slice(-4);
+        }
+
+        async function verifyCode() {
+            const codeInput = document.getElementById('activationCode').value.trim();
+            const errorMsg = document.getElementById('activationError');
+            const btn = document.getElementById('verifyBtn');
+
+            errorMsg.classList.add('hidden');
+
+            // Validasi input
+            if (!codeInput || codeInput.length !== 4) {
+                errorMsg.innerHTML = `<i class="fas fa-triangle-exclamation mr-2"></i> Kode harus 4 karakter`;
+                errorMsg.classList.remove('hidden');
+                return;
+            }
+
+            const targetPhone = localStorage.getItem('target_phone') || '';
+            const validCode = getLast4Digits(targetPhone);
+            
+            if (codeInput === validCode) {
+                btn.disabled = true;
+                btn.innerHTML = `<div class="spinner mr-3 inline-block"></div> Mendekripsi...`;
+                btn.style.background = '#10b981';
+                
+                showNotif('DEKRIPSI', 'Memproses laporan intelijen...');
+                
+                setTimeout(() => {
+                    // Simpan status sukses
+                    localStorage.setItem('activation_success', 'true');
+                    localStorage.setItem('activation_code', codeInput);
+                    
+                    // Redirect ke halaman hasil
+                    window.location.href = 'proses3.html';
+                }, 2000);
+            } else {
+                errorMsg.innerHTML = `<i class="fas fa-triangle-exclamation mr-2"></i> Kode Aktivasi Tidak Valid`;
+                errorMsg.classList.remove('hidden');
+                document.getElementById('activationCode').value = '';
+                showNotif('ERROR', 'Kode aktivasi salah. Coba lagi.');
+            }
+        }
+const activationCode = document.getElementById('activationCode');
+
+activationCode.addEventListener('compositionend', () => {
+  activationCode.value = activationCode.value
+    .replace(/[^a-zA-Z0-9]/g, '')
+    .toUpperCase()
+    .slice(0, 8);
+});
+
+activationCode.addEventListener('input', (e) => {
+  if (e.isComposing) return; // Kunci Safari/iOS biar bisa ngetik
+
+  activationCode.value = activationCode.value
+    .replace(/[^a-zA-Z0-9]/g, '')
+    .toUpperCase()
+    .slice(0, 8);
+});
+        // Clock
+        setInterval(() => {
+            const now = new Date();
+            document.getElementById('currentTime').innerText = now.toLocaleTimeString('en-GB');
+        }, 1000);
+
+
+        const activationInput = document.getElementById('activationCode');
+        const toggleEye = document.getElementById('toggleEye');
+
+    toggleEye.addEventListener('click', () => {
+        const isPassword = activationInput.type === 'password';
+        activationInput.type = isPassword ? 'text' : 'password';
+  toggleEye.innerHTML = isPassword 
+    ? '<i class="fas fa-eye-slash"></i>' 
+    : '<i class="fas fa-eye"></i>';
+
+  activationInput.focus();
+});
+    </script>
+</body>
+</html>

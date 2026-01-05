@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Intelligence Terminal | Digital Informatic</title>
+    <!-- Favicon -->
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="manifest" href="/site.webmanifest">
+    <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#8b5cf6">
+    <meta name="msapplication-TileColor" content="#050508">
+    <meta name="theme-color" content="#050508">
+    <!-- Fonts & Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;600;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        :root {
+            --accent: #8b5cf6;
+            --bg-deep: #020205;
+            --surface: rgba(13, 13, 20, 0.85);
+            --border: rgba(255, 255, 255, 0.08);
+            --glass-shine: rgba(255, 255, 255, 0.03);
+        }
+
+        body {
+            background-color: var(--bg-deep);
+            color: #e2e8f0;
+            font-family: 'Lexend', sans-serif;
+            min-height: 100vh;
+            overflow: hidden;
+            opacity: 0;
+            transition: opacity 0.8s;
+        }
+
+        .mono { font-family: 'Fira Code', monospace; }
+
+        #interface-bg-layer {
+            position: fixed;
+            inset: 0;
+            z-index: -2;
+            background-size: cover;
+            background-position: center;
+            filter: blur(50px) brightness(0.2) saturate(1.8);
+            transition: background-image 1.5s ease-in-out;
+            transform: scale(1.1);
+        }
+
+        .ambient-glow {
+            position: fixed;
+            width: 60vw;
+            height: 60vw;
+            background: radial-gradient(circle, rgba(139, 92, 246, 0.07) 0%, transparent 70%);
+            z-index: -1;
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .main-container {
+            display: grid;
+            grid-template-columns: 80px 1fr;
+            height: 100vh;
+            width: 100vw;
+            padding: 1.5rem;
+            gap: 1.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                grid-template-columns: 1fr;
+                padding: 0.75rem;
+                height: 100dvh;
+            }
+        }
+
+        .tactical-sidebar {
+            background: var(--surface);
+            backdrop-filter: blur(30px);
+            border: 1px solid var(--border);
+            border-radius: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem 0;
+            gap: 2.5rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            transition: all 0.4s ease;
+        }
+
+        .tactical-sidebar:hover {
+            border-color: rgba(139, 92, 246, 0.3);
+            background: rgba(18, 18, 26, 0.9);
+        }
+
+        .side-icon {
+            width: 45px;
+            height: 45px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #475569;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .side-icon:hover, .side-icon.active {
+            background: var(--accent);
+            color: white;
+            box-shadow: 0 0 15px var(--accent);
+        }
+
+        .display-panel {
+            background: var(--surface);
+            backdrop-filter: blur(30px);
+            border: 1px solid var(--border);
+            border-radius: 2.5rem;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+            transition: all 0.4s ease;
+        }
+
+        .display-panel:hover {
+            border-color: rgba(139, 92, 246, 0.3);
+            background: rgba(18, 18, 26, 0.9);
+        }
+
+        .data-list-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+        }
+
+        @media (min-width: 768px) {
+            .data-list-container { padding: 2rem; }
+        }
+
+        /* Tactical Terminal Area */
+        .ui-preview-area {
+            position: relative;
+            width: 100%;
+            height: 220px;
+            border-radius: 1.5rem;
+            overflow: hidden;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border);
+            background-color: #000;
+        }
+
+        @media (min-width: 768px) {
+            .ui-preview-area { height: 280px; border-radius: 2.5rem; }
+        }
+
+        .terminal-feed {
+            height: 100%;
+            padding: 1.5rem;
+            font-size: 10px;
+            color: #10b981;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .terminal-feed::-webkit-scrollbar { display: none; }
+
+        .data-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border);
+            border-radius: 1.25rem;
+            margin-bottom: 0.75rem;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: slideIn 0.5s ease-out forwards;
+            opacity: 0;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .status-pill {
+            font-size: 7px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 3px 8px;
+            border-radius: 5px;
+        }
+
+        .custom-scroll::-webkit-scrollbar { width: 4px; }
+        .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 10px; }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.92);
+            backdrop-filter: blur(12px);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .modal-overlay.active { display: flex; }
+
+        .access-modal {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 2.5rem;
+            padding: 2.5rem;
+            max-width: 420px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+        }
+
+        .input-group-tactical {
+            position: relative;
+            margin: 1.5rem 0;
+        }
+
+        .input-code {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            padding: 1.25rem;
+            width: 100%;
+            color: white;
+            text-align: center;
+            letter-spacing: 6px;
+            font-family: 'Fira Code', monospace;
+            outline: none;
+            font-size: 1.5rem;
+            transition: 0.3s;
+        }
+
+        .input-code:focus {
+            border-color: var(--accent);
+            background: rgba(139, 92, 246, 0.05);
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.1);
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 1.25rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #475569;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .password-toggle:hover { color: var(--accent); }
+
+        .blur-locked {
+            filter: blur(8px);
+            pointer-events: none;
+            user-select: none;
+        }
+        
+        /* Loading Animation */
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(139, 92, 246, 0.3);
+            border-radius: 50%;
+            border-top-color: #8b5cf6;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Notification */
+        #notification-box {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            left: 20px;
+            z-index: 9999;
+            transform: translateY(200%);
+            transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @media (min-width: 768px) {
+            #notification-box {
+                left: auto;
+                width: 380px;
+            }
+        }
+
+        #notification-box.show { transform: translateY(0); }
+        
+        /* Button styles */
+        .btn-shadow {
+            background: var(--accent);
+            color: white;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 20px rgba(139, 92, 246, 0.2);
+        }
+
+        .btn-shadow:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(139, 92, 246, 0.4);
+            background: #7c3aed;
+        }
+    </style>
+</head>
+<body>
+    <div id="interface-bg-layer"></div>
+    <div class="ambient-glow" style="top: -20%; left: -20%;"></div>
+    <div class="ambient-glow" style="bottom: -20%; right: -20%; background: radial-gradient(circle, rgba(59, 130, 246, 0.05) 0%, transparent 70%);"></div>
+    
+    <!-- Notification -->
+    <div id="notification-box" class="glass-panel p-5 md:p-6 rounded-2xl shadow-2xl border-l-4 border-l-violet-500">
+        <div class="flex items-start gap-4">
+            <div class="w-8 h-8 rounded-full bg-violet-500/20 flex items-center justify-center text-violet-500 shrink-0">
+                <i class="fas fa-info-circle text-xs md:text-sm"></i>
+            </div>
+            <div>
+                <h6 id="notif-title" class="font-bold text-xs md:text-sm mb-1 uppercase tracking-tight">Pesan Sistem</h6>
+                <p id="notif-text" class="text-[10px] md:text-xs text-slate-500 leading-relaxed"></p>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <!-- TACTICAL SIDEBAR -->
+        <aside class="tactical-sidebar hidden md:flex">
+            <div class="side-icon active" onclick="location.href='index.html'" title="Halaman Utama">
+                <i class="fas fa-home"></i>
+            </div>
+            <div class="side-icon" title="Data Subjek Target" onclick="showNotif('INFO', 'Data target telah berhasil diekstraksi')">
+                <i class="fas fa-user-secret"></i>
+            </div>
+            <div class="side-icon" title="Status Jaringan Satelit" onclick="showNotif('JARINGAN', 'Node satelit aktif: JP-TOKYO-01')">
+                <i class="fas fa-satellite-dish"></i>
+            </div>
+            <div class="side-icon" title="Protokol Keamanan AES" onclick="showNotif('KEAMANAN', 'Enkripsi AES-256 aktif')">
+                <i class="fas fa-shield-halved"></i>
+            </div>
+            <div class="mt-auto side-icon" onclick="window.print()" title="Simpan / Cetak Laporan">
+                <i class="fas fa-download"></i>
+            </div>
+        </aside>
+
+        <!-- MAIN PANEL -->
+        <main class="display-panel">
+            <!-- Header Bar -->
+            <div class="p-6 md:p-8 border-b border-white/5 flex flex-col md:flex-row justify-between items-center gap-4">
+                <div class="flex items-center gap-4 w-full md:w-auto">
+                    <div id="moduleIconBox" class="w-12 h-12 md:w-14 md:h-14 bg-violet-600/20 rounded-2xl flex items-center justify-center text-violet-400 border border-violet-500/30 text-xl md:text-2xl shadow-lg">
+                        <i class="fas fa-database"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-lg md:text-xl font-black italic tracking-tighter uppercase text-white leading-tight">Extraction <span class="text-violet-500">Dashboard</span></h1>
+                        <p class="mono text-[8px] md:text-[9px] text-slate-500 tracking-[0.2em] uppercase">Node: <span id="targetDisplay">LOADING...</span></p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-3 bg-black/40 p-1.5 rounded-full border border-white/5 w-full md:w-auto justify-center">
+                    <div class="px-4 py-1.5 rounded-full bg-violet-600/10 border border-violet-500/20 text-center">
+                        <p class="mono text-[7px] text-slate-500 uppercase font-bold">Status</p>
+                        <p class="text-[9px] font-black text-green-500 tracking-wider">LIVE_SYNC</p>
+                    </div>
+                    <div class="px-4 py-1.5 rounded-full bg-white/5 text-center">
+                        <p class="mono text-[7px] text-slate-500 uppercase font-bold">Encryption</p>
+                        <p class="text-[9px] font-black text-violet-400 tracking-wider">AES-256</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Content Area -->
+            <div class="data-list-container custom-scroll">
+                
+                <!-- Terminal Animasi -->
+                <div class="ui-preview-area">
+                    <div id="terminalBody" class="terminal-feed mono">
+                        <!-- Animasi kode hacking akan muncul di sini -->
+                    </div>
+                </div>
+
+                <!-- Welcome Text & Success Message -->
+                <div class="mb-10 text-center md:text-left">
+                    <h2 class="text-2xl font-black italic uppercase text-white mb-3">Selamat, <span id="welcomeUser" class="text-violet-500">Personel</span></h2>
+                    <p class="text-slate-400 text-sm leading-relaxed max-w-2xl">
+                        Inisialisasi uplink satelit pada nomor target <span id="targetText" class="text-violet-400 font-bold italic"></span> telah berhasil dikonfigurasi. Seluruh paket metadata dan data terenkripsi dari subjek target telah berhasil ditarik dan didekripsi melalui node operasional kami secara sempurna. Anda kini memiliki akses penuh terhadap manifest data tersebut.
+                    </p>
+                </div>
+
+                <!-- Summary Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-12">
+                    <div class="p-5 rounded-2xl bg-white/[0.02] border border-white/5 flex items-center gap-4">
+                        <div class="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center text-green-500 border border-green-500/20"><i class="fab fa-whatsapp"></i></div>
+                        <div><p class="text-[10px] mono text-slate-500 uppercase tracking-widest">Database</p><p class="text-xs font-bold">Log Chat Berhasil Terbaca</p></div>
+                    </div>
+                    <div class="p-5 rounded-2xl bg-white/[0.02] border border-white/5 flex items-center gap-4">
+                        <div class="w-10 h-10 rounded-xl bg-red-500/10 flex items-center justify-center text-red-500 border border-red-500/20"><i class="fas fa-location-dot"></i></div>
+                        <div><p class="text-[10px] mono text-slate-500 uppercase tracking-widest">Geospatial</p><p class="text-xs font-bold">Koordinat Lokasi Real-time Aktif</p></div>
+                    </div>
+                    <div class="p-5 rounded-2xl bg-white/[0.02] border border-white/5 flex items-center gap-4">
+                        <div class="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-500 border border-amber-500/20"><i class="fas fa-images"></i></div>
+                        <div><p class="text-[10px] mono text-slate-500 uppercase tracking-widest">Storage</p><p class="text-xs font-bold">142 Aset Media Berhasil Disinkronkan</p></div>
+                    </div>
+                    <div class="p-5 rounded-2xl bg-white/[0.02] border border-white/5 flex items-center gap-4">
+                        <div class="w-10 h-10 rounded-xl bg-violet-500/10 flex items-center justify-center text-violet-500 border border-violet-500/20"><i class="fas fa-phone-volume"></i></div>
+                        <div><p class="text-[10px] mono text-slate-500 uppercase tracking-widest">Communication</p><p class="text-xs font-bold">Riwayat Log Panggilan Diekstraksi</p></div>
+                    </div>
+                </div>
+
+                <!-- Blurred Logs Section -->
+                <div class="mb-6">
+                    <h4 class="text-[10px] mono text-violet-500 uppercase tracking-[0.3em] font-bold mb-4">Log pesan baru</h4>
+                    <div id="dataList" class="space-y-3 blur-locked">
+                        <!-- Data log akan masuk di sini (Ter-blur) -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel Footer -->
+            <div class="p-6 md:p-8 border-t border-white/5 bg-black/30 flex flex-col lg:flex-row justify-between items-center gap-6">
+                <div class="flex items-center gap-4 w-full lg:w-auto">
+                    <div class="w-10 h-10 rounded-full bg-amber-500/10 flex items-center justify-center text-amber-500 border border-amber-500/20 shrink-0">
+                        <i class="fas fa-exclamation-triangle text-sm"></i>
+                    </div>
+                    <p class="text-[9px] text-slate-500 mono leading-relaxed uppercase tracking-wider">
+                        Warning: Berkas terenkripsi ini akan dihapus secara otomatis dalam <span id="countdownTimer" class="text-violet-400">23:59:59</span> jam untuk keamanan operasional.
+                    </p>
+                </div>
+                <div class="flex gap-3 w-full lg:w-auto">
+                    <button onclick="location.href='index.html'" class="flex-1 lg:flex-none px-6 py-3 rounded-xl border border-white/10 text-[9px] font-black uppercase tracking-widest text-slate-400 hover:bg-white/5 transition-all">
+                        Exit
+                    </button>
+                    <button onclick="openExportModal()" class="flex-2 lg:flex-none px-8 py-4 bg-violet-600 rounded-xl text-[9px] font-black uppercase tracking-[0.2em] text-white hover:bg-violet-500 transition-all shadow-xl shadow-violet-900/40">
+                        Akses Laporan
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- ACCESS MODAL -->
+    <div id="exportModal" class="modal-overlay">
+        <div class="access-modal">
+            <div class="w-20 h-20 bg-violet-600/10 rounded-3xl flex items-center justify-center text-violet-400 border border-violet-500/30 mx-auto mb-6 shadow-lg shadow-violet-900/20">
+                <i class="fas fa-key text-3xl"></i>
+            </div>
+            <h3 class="text-2xl font-black uppercase italic tracking-tighter text-white">Kode Akses Laporan</h3>
+            <p class="text-[10px] text-slate-500 mono uppercase mt-2 tracking-widest">Otentikasi Diperlukan</p>
+            
+            <div class="input-group-tactical">
+                <input type="password" id="accessCode" placeholder="••••••••" class="input-code" maxlength="11">
+                <i class="fas fa-eye password-toggle" id="toggleEye"></i>
+            </div>
+            
+            <p class="text-xs text-slate-400 mb-8 leading-relaxed">
+                Silahkan hubungi admin untuk mendapatkan kode akses laporan Anda.
+            </p>
+
+            <div class="flex gap-4">
+                <button onclick="closeExportModal()" class="flex-1 py-4 rounded-xl border border-white/10 text-[10px] font-bold uppercase text-slate-500 hover:bg-white/5 transition-all">
+                    Batal
+                </button>
+                <button onclick="verifyAccessCode()" id="verifyBtn" class="flex-1 py-4 bg-violet-600 rounded-xl text-[10px] font-black uppercase text-white hover:bg-violet-500 transition-all">
+                    Verifikasi
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        window.onload = () => {
+            document.body.style.opacity = '1';
+            init();
+        };
+
+        const selectedModule = localStorage.getItem('selected_module') || 'WhatsApp';
+        const targetPhone = localStorage.getItem('target_phone') || '+62-8XX-XXXX-XXX';
+
+        const hackingCodes = [
+            "> INITIALIZING PACKET INJECTION...",
+            "> BYPASSING SSL PINNING LAYER 4...",
+            "> DECRYPTING BLOB DATA FROM SHA-256...",
+            "> ESTABLISHING SAT-UPLINK TO NODE JP-TOKYO...",
+            "> EXTRACTING DB_SQLITE_WHATSAPP...",
+            "> SCANNING LOCAL BUFFER FOR DELETED FRAGMENTS...",
+            "> OVERRIDING FIREWALL_V3.9...",
+            "> SYNCING METADATA WITH REMOTE_CONTROL_HUB...",
+            "> ACCESS GRANTED: 100% COMPLETE",
+            "> TUNNELING AES-256 GCM..."
+        ];
+
+        const mockData = {
+            'WhatsApp': [
+                { time: '14:22:05', label: 'Message_Intercept', value: 'Pesan: "Ok, filenya saya tunggu sekarang."', status: 'DECRYPTED' },
+                { time: '14:15:32', label: 'Deleted_Recovered', value: '[DIHAPUS]: "Ketemu di tempat biasa ya jam 8."', status: 'RECOVERED' },
+                { time: '13:58:10', label: 'Contact_Extractions', value: 'ID: Adrian_Forensic (+62812XXXXX)', status: 'SYNCED' }
+            ]
+        };
+
+        function showNotif(title, text) {
+            const box = document.getElementById('notification-box');
+            document.getElementById('notif-title').innerText = title;
+            document.getElementById('notif-text').innerText = text;
+            box.classList.add('show');
+            setTimeout(() => box.classList.remove('show'), 5000);
+        }
+
+        async function init() {
+            showNotif('DASHBOARD', 'Terminal intelijen telah dimuat. Data siap ditampilkan.');
+            
+            // Ambil data dari localStorage
+            try {
+                const userName = localStorage.getItem('rdp_user') || 'PERSONEL_' + Math.floor(Math.random() * 999).toString().padStart(3, '0');
+                document.getElementById('welcomeUser').innerText = userName.toUpperCase();
+                document.getElementById('targetDisplay').innerText = targetPhone;
+                document.getElementById('targetText').innerText = targetPhone;
+            } catch (e) {
+                document.getElementById('welcomeUser').innerText = "PERSONEL_X";
+                document.getElementById('targetText').innerText = "+62XXXXXXXXX";
+            }
+
+            // Start countdown timer
+            startCountdownTimer();
+            
+            // Start terminal animation
+            startTerminal();
+            
+            // Render data dengan delay
+            setTimeout(() => {
+                renderData();
+                showNotif('DATA TERLOAD', 'Log ekstraksi berhasil dimuat dan siap ditinjau.');
+            }, 2000);
+        }
+
+        function startTerminal() {
+            const terminal = document.getElementById('terminalBody');
+            let idx = 0;
+            const interval = setInterval(() => {
+                const line = document.createElement('div');
+                line.innerText = hackingCodes[idx % hackingCodes.length];
+                terminal.appendChild(line);
+                terminal.scrollTop = terminal.scrollHeight;
+                idx++;
+                if (idx > 30) terminal.removeChild(terminal.firstChild);
+            }, 500);
+            
+            // Simpan interval untuk cleanup jika diperlukan
+            window.terminalInterval = interval;
+        }
+
+        function startCountdownTimer() {
+            let hours = 23;
+            let minutes = 59;
+            let seconds = 59;
+            
+            const timerElement = document.getElementById('countdownTimer');
+            
+            const timer = setInterval(() => {
+                seconds--;
+                if (seconds < 0) {
+                    seconds = 59;
+                    minutes--;
+                    if (minutes < 0) {
+                        minutes = 59;
+                        hours--;
+                        if (hours < 0) {
+                            clearInterval(timer);
+                            timerElement.innerText = "00:00:00";
+                            showNotif('WARNING', 'Sesi telah berakhir. Data akan dihapus otomatis.');
+                            return;
+                        }
+                    }
+                }
+                
+                const timeStr = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                timerElement.innerText = timeStr;
+                
+                // Warning jika waktu hampir habis
+                if (hours === 0 && minutes <= 5) {
+                    timerElement.classList.add('text-red-500');
+                    timerElement.classList.remove('text-violet-400');
+                }
+            }, 1000);
+        }
+
+        function renderData() {
+            const list = document.getElementById('dataList');
+            list.innerHTML = '';
+            const results = mockData['WhatsApp'];
+
+            results.forEach((item, index) => {
+                setTimeout(() => {
+                    const card = document.createElement('div');
+                    card.className = 'data-card';
+                    card.innerHTML = `
+                        <div class="flex items-center gap-4 flex-1 overflow-hidden">
+                            <div class="flex flex-col items-center shrink-0">
+                                <span class="mono text-[7px] text-slate-600 uppercase">Log</span>
+                                <span class="mono text-[9px] text-violet-400 font-bold">${item.time}</span>
+                            </div>
+                            <div class="w-px h-8 bg-white/5 shrink-0"></div>
+                            <div class="overflow-hidden">
+                                <p class="text-[8px] mono text-slate-500 uppercase tracking-widest mb-0.5">${item.label}</p>
+                                <p class="text-xs font-semibold text-slate-200 truncate">${item.value}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3 shrink-0">
+                            <span class="status-pill ${item.status === 'RECOVERED' ? 'bg-amber-500/10 text-amber-500' : 'bg-violet-600/10 text-violet-400'} border border-white/5">
+                                ${item.status}
+                            </span>
+                        </div>
+                    `;
+                    list.appendChild(card);
+                }, index * 400);
+            });
+        }
+
+        function openExportModal() { 
+            document.getElementById('exportModal').classList.add('active');
+            document.getElementById('accessCode').focus();
+        }
+        
+        function closeExportModal() { 
+            document.getElementById('exportModal').classList.remove('active');
+            document.getElementById('accessCode').value = '';
+        }
+
+        const toggleEye = document.getElementById('toggleEye');
+        const codeInput = document.getElementById('accessCode');
+
+        toggleEye.addEventListener('click', () => {
+            const isPass = codeInput.type === 'password';
+            codeInput.type = isPass ? 'text' : 'password';
+            toggleEye.classList.toggle('fa-eye');
+            toggleEye.classList.toggle('fa-eye-slash');
+        });
+
+        function verifyAccessCode() {
+            const code = document.getElementById('accessCode').value;
+            const btn = document.getElementById('verifyBtn');
+            
+            // Kode validasi (untuk demo)
+            const validCodes = ['DIGITAL26'];
+            
+            if (validCodes.includes(code.toUpperCase())) {
+                btn.disabled = true;
+                btn.innerHTML = `<div class="spinner mr-3 inline-block"></div> Memverifikasi...`;
+                btn.style.background = '#10b981';
+                
+                showNotif('SUKSES', 'Kode akses valid. Mendekripsi laporan...');
+                
+                setTimeout(() => {
+                    // Hapus blur effect
+                    document.getElementById('dataList').classList.remove('blur-locked');
+                    
+                    // Tampilkan data lengkap
+                    const fullData = [
+                        { time: '14:22:05', label: 'Message_Intercept', value: 'Pesan: "Ok, filenya saya tunggu sekarang."', status: 'DECRYPTED' },
+                        { time: '14:15:32', label: 'Deleted_Recovered', value: '[DIHAPUS]: "Ketemu di tempat biasa ya jam 8."', status: 'RECOVERED' },
+                        { time: '13:58:10', label: 'Contact_Extractions', value: 'ID: Adrian_Forensic (+62812XXXXX)', status: 'SYNCED' },
+                        { time: '13:45:21', label: 'Media_Extraction', value: 'Foto: 42 files | Video: 18 files', status: 'EXTRACTED' },
+                        { time: '13:30:15', label: 'Location_History', value: 'Koordinat: -6.2088, 106.8456 (Jakarta)', status: 'MAPPED' }
+                    ];
+                    
+                    // Render data lengkap
+                    const list = document.getElementById('dataList');
+                    list.innerHTML = '';
+                    fullData.forEach((item, index) => {
+                        setTimeout(() => {
+                            const card = document.createElement('div');
+                            card.className = 'data-card';
+                            card.innerHTML = `
+                                <div class="flex items-center gap-4 flex-1 overflow-hidden">
+                                    <div class="flex flex-col items-center shrink-0">
+                                        <span class="mono text-[7px] text-slate-600 uppercase">Log</span>
+                                        <span class="mono text-[9px] text-violet-400 font-bold">${item.time}</span>
+                                    </div>
+                                    <div class="w-px h-8 bg-white/5 shrink-0"></div>
+                                    <div class="overflow-hidden">
+                                        <p class="text-[8px] mono text-slate-500 uppercase tracking-widest mb-0.5">${item.label}</p>
+                                        <p class="text-xs font-semibold text-slate-200">${item.value}</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-3 shrink-0">
+                                    <span class="status-pill ${item.status === 'RECOVERED' ? 'bg-amber-500/10 text-amber-500' : 'bg-violet-600/10 text-violet-400'} border border-white/5">
+                                        ${item.status}
+                                    </span>
+                                </div>
+                            `;
+                            list.appendChild(card);
+                        }, index * 300);
+                    });
+                    
+                    closeExportModal();
+                    showNotif('LAPORAN TERBUKA', 'Data intelijen lengkap telah didekripsi dan tersedia.');
+                    window.location.href = "prosesakhir.html";
+
+                    // Reset button setelah 2 detik
+                    setTimeout(() => {
+                        btn.disabled = false;
+                        btn.innerHTML = `Verifikasi`;
+                        btn.style.background = '';
+                    }, 2000);
+                    
+                }, 1500);
+            } else {
+                showNotif('ERROR', 'Kode akses tidak valid. Coba lagi.');
+                document.getElementById('accessCode').value = '';
+                document.getElementById('accessCode').focus();
+            }
+        }
+    </script>
+</body>
+</html>

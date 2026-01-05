@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Intelligence Report | Digital Informatic</title>
+    <!-- Favicon -->
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="manifest" href="/site.webmanifest">
+    <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#8b5cf6">
+    <meta name="msapplication-TileColor" content="#050508">
+    <meta name="theme-color" content="#050508">
+    <!-- Fonts & Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;600;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        :root {
+            --accent: #8b5cf6;
+            --accent-soft: rgba(139, 92, 246, 0.1);
+            --bg-deep: #050508;
+            --surface: rgba(18, 18, 26, 0.8);
+            --border: rgba(255, 255, 255, 0.06);
+        }
+
+        body {
+            background-color: var(--bg-deep);
+            color: #e2e8f0;
+            font-family: 'Lexend', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            opacity: 0;
+            transition: opacity 0.8s;
+        }
+
+        .mono { font-family: 'Fira Code', monospace; }
+
+        /* Background Decor */
+        .glow-orb {
+            position: fixed;
+            width: 60vw;
+            height: 60vw;
+            background: radial-gradient(circle, rgba(139, 92, 246, 0.08) 0%, transparent 70%);
+            border-radius: 50%;
+            z-index: -1;
+            filter: blur(80px);
+            pointer-events: none;
+        }
+
+        .bg-grid {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            background-image: radial-gradient(var(--border) 1px, transparent 1px);
+            background-size: 30px 30px;
+        }
+
+        /* Tactical Dossier Styling */
+        .dossier-card {
+            background: var(--surface);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 2rem;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            transition: all 0.4s ease;
+        }
+
+        .dossier-card:hover {
+            border-color: rgba(139, 92, 246, 0.3);
+            background: rgba(18, 18, 26, 0.9);
+        }
+
+        .status-badge {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            color: #10b981;
+            padding: 4px 12px;
+            border-radius: 9999px;
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .result-item {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border);
+            border-radius: 1.5rem;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .result-item:hover {
+            background: rgba(139, 92, 246, 0.05);
+            border-color: rgba(139, 92, 246, 0.3);
+            transform: scale(1.02);
+        }
+
+        /* Progress Circle */
+        .completion-ring {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 4px solid rgba(255, 255, 255, 0.05);
+            border-top-color: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            animation: spinRing 2s ease-out forwards;
+        }
+
+        @keyframes spinRing {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(720deg); }
+        }
+
+        .btn-glitch {
+            background: var(--accent);
+            color: white;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            position: relative;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 30px rgba(139, 92, 246, 0.4);
+        }
+
+        .btn-glitch:hover {
+            transform: translateY(-3px);
+            filter: brightness(1.1);
+            box-shadow: 0 15px 40px rgba(139, 92, 246, 0.6);
+        }
+
+        /* Overlay */
+        #finalOverlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(5, 5, 8, 0.98);
+            backdrop-filter: blur(15px);
+            z-index: 1000;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        /* Loading Animation */
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(139, 92, 246, 0.3);
+            border-radius: 50%;
+            border-top-color: #8b5cf6;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Notification */
+        #notification-box {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            left: 20px;
+            z-index: 9999;
+            transform: translateY(200%);
+            transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @media (min-width: 768px) {
+            #notification-box {
+                left: auto;
+                width: 380px;
+            }
+        }
+
+        #notification-box.show { transform: translateY(0); }
+    </style>
+</head>
+<body class="p-4 md:p-8 lg:p-12">
+    <div class="glow-orb" style="top: -10%; left: -10%;"></div>
+    <div class="glow-orb" style="bottom: -10%; right: -10%; background: radial-gradient(circle, rgba(59, 130, 246, 0.05) 0%, transparent 70%);"></div>
+    <div class="bg-grid"></div>
+    
+    <!-- Notification -->
+    <div id="notification-box" class="glass-panel p-5 md:p-6 rounded-2xl shadow-2xl border-l-4 border-l-violet-500">
+        <div class="flex items-start gap-4">
+            <div class="w-8 h-8 rounded-full bg-violet-500/20 flex items-center justify-center text-violet-500 shrink-0">
+                <i class="fas fa-info-circle text-xs md:text-sm"></i>
+            </div>
+            <div>
+                <h6 id="notif-title" class="font-bold text-xs md:text-sm mb-1 uppercase tracking-tight">Pesan Sistem</h6>
+                <p id="notif-text" class="text-[10px] md:text-xs text-slate-500 leading-relaxed"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header Navigation -->
+    <header class="max-w-6xl mx-auto w-full flex justify-between items-center mb-12">
+        <div class="flex items-center gap-4 cursor-pointer" onclick="goBack()">
+            <div class="w-10 h-10 bg-violet-600 rounded-xl flex items-center justify-center shadow-lg shadow-violet-900/40">
+                <i class="fas fa-file-invoice text-white text-lg"></i>
+            </div>
+            <div>
+                <h1 class="font-black text-xl tracking-tighter uppercase italic">DOSSIER <span class="text-violet-500">REPORT</span></h1>
+                <p class="mono text-[9px] text-slate-500 tracking-widest">REF_ID: <span id="sessionID">DIG-INF-9921</span></p>
+            </div>
+        </div>
+        <div class="status-badge flex items-center gap-2">
+            <span class="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
+            Extraction Complete
+        </div>
+    </header>
+
+    <!-- Main Content Grid -->
+    <main class="max-w-6xl mx-auto w-full grid grid-cols-1 lg:grid-cols-3 gap-8 mb-20">
+        
+        <!-- Left Panel: Subject Info -->
+        <div class="lg:col-span-1 space-y-6">
+            <div class="dossier-card p-8">
+                <div class="flex justify-center mb-8">
+                    <div class="completion-ring">
+                        <div class="text-2xl font-black italic">100%</div>
+                        <div class="absolute -inset-2 border border-violet-500/20 rounded-full"></div>
+                    </div>
+                </div>
+                
+                <div class="space-y-6">
+                    <div>
+                        <p class="mono text-[10px] text-slate-500 uppercase mb-1 tracking-widest">Identitas Operator</p>
+                        <h3 id="userName" class="text-xl font-bold text-white uppercase tracking-tight">OPERATOR_X</h3>
+                    </div>
+                    <div>
+                        <p class="mono text-[10px] text-slate-500 uppercase mb-1 tracking-widest">Identitas Subjek</p>
+                        <h3 id="targetPhone" class="text-xl font-bold text-violet-400 mono">+62-8XX-XXXX-XXX</h3>
+                    </div>
+                    <div class="pt-6 border-t border-white/5">
+                        <p class="mono text-[10px] text-slate-500 uppercase mb-4 tracking-widest">Modul Terpilih</p>
+                        <div class="flex items-center gap-4 bg-white/5 p-4 rounded-2xl border border-white/5">
+                            <div id="moduleIcon" class="text-2xl text-violet-500">
+                                <i class="fas fa-microchip"></i>
+                            </div>
+                            <span id="moduleName" class="font-bold text-sm text-slate-300">Default Module</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dossier-card p-6 bg-violet-600/5 border-violet-600/20">
+                <p class="text-xs text-slate-400 leading-relaxed italic">
+                    "Semua metadata yang tercantum di samping telah didekripsi dan diverifikasi melalui jalur node satelit kami. Akses penuh tersedia di terminal dashboard."
+                </p>
+            </div>
+        </div>
+
+        <!-- Right Panel: Data Matrix -->
+        <div class="lg:col-span-2">
+            <div class="dossier-card p-8 md:p-12 h-full">
+                <div class="flex items-center justify-between mb-12">
+                    <h2 class="text-2xl font-black italic uppercase tracking-tight">Metadata <span class="text-violet-500">Inventory</span></h2>
+                    <i class="fas fa-database text-slate-600"></i>
+                </div>
+
+                <div id="reportGrid" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Data items will be injected here -->
+                </div>
+
+                <div class="mt-16 pt-8 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-8">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center text-xl text-violet-500 border border-white/10">
+                            <i class="fas fa-unlock-keyhole"></i>
+                        </div>
+                        <div class="text-left">
+                            <p class="text-sm font-bold text-white">Status Paket: Terenkripsi</p>
+                            <p class="text-[10px] mono text-slate-500">AES-256 GCM PROTECTED</p>
+                        </div>
+                    </div>
+                    
+                    <button onclick="triggerFinalAction()" class="btn-glitch w-full md:w-auto px-12 py-5 rounded-2xl text-xs font-black shadow-2xl">
+                        BUKA TERMINAL DASHBOARD
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer Stats -->
+    <footer class="max-w-6xl mx-auto w-full grid grid-cols-2 md:grid-cols-4 gap-8 opacity-40 px-6 mb-12">
+        <div class="text-center md:text-left">
+            <p class="mono text-[9px] uppercase tracking-widest mb-1">Bandwidth</p>
+            <p class="font-bold text-sm">1.4 GB/s</p>
+        </div>
+        <div class="text-center md:text-left">
+            <p class="mono text-[9px] uppercase tracking-widest mb-1">Packet Loss</p>
+            <p class="font-bold text-sm">0.0001%</p>
+        </div>
+        <div class="text-center md:text-left">
+            <p class="mono text-[9px] uppercase tracking-widest mb-1">Node Status</p>
+            <p class="font-bold text-sm text-green-500">SECURE</p>
+        </div>
+        <div class="text-center md:text-left">
+            <p class="mono text-[9px] uppercase tracking-widest mb-1">Last Sync</p>
+            <p id="currentTime" class="font-bold text-sm">00:00:00</p>
+        </div>
+    </footer>
+
+    <!-- FINAL OVERLAY -->
+    <div id="finalOverlay">
+        <div class="w-20 h-20 border-4 border-violet-500/20 border-t-violet-500 rounded-full animate-spin mb-10"></div>
+        <h2 class="text-4xl font-black italic uppercase tracking-tighter mb-4">Transmisi <span class="text-violet-500">Selesai</span></h2>
+        <p class="text-slate-400 max-w-sm leading-relaxed mb-12">
+            Paket data intelijen telah dipindahkan ke terminal pribadi Anda secara aman. Mohon tunggu pengalihan sistem...
+        </p>
+        <button onclick="redirectToFinal()" id="finalBtn" class="px-12 py-4 bg-white text-black rounded-full font-black text-xs uppercase tracking-[0.3em] hover:bg-violet-500 hover:text-white transition-all">
+            Lanjut ke Laporan Akhir
+        </button>
+    </div>
+
+    <script>
+        window.onload = () => {
+            document.body.style.opacity = '1';
+            init();
+        };
+
+        const selectedModule = localStorage.getItem('selected_module') || 'WhatsApp';
+        const targetPhone = localStorage.getItem('target_phone') || '+62-8XX-XXXX-XXX';
+
+        const moduleIcons = {
+            'WhatsApp': 'fab fa-whatsapp text-green-500',
+            'Instagram': 'fab fa-instagram text-pink-500',
+            'Tracking Kamera': 'fas fa-camera text-violet-400',
+            'Lokasi': 'fas fa-location-dot text-red-500',
+            'Facebook': 'fab fa-facebook-messenger text-blue-500',
+            'Galeri': 'fas fa-images text-amber-500',
+            'Panggilan': 'fas fa-phone text-indigo-400',
+            'Pesan Terhapus': 'fas fa-trash-can text-purple-500'
+        };
+
+        const moduleData = {
+            'WhatsApp': [
+                { title: 'Chat Archives', desc: 'Akses penuh ke log pesan aktif & terhapus.', icon: 'fas fa-comment-dots' },
+                { title: 'Contact Map', desc: 'Pemetaan jaringan kontak & frekuensi interaksi.', icon: 'fas fa-users' },
+                { title: 'Media Vault', desc: 'Sinkronisasi 142MB aset foto & video.', icon: 'fas fa-photo-film' },
+                { title: 'Audio Buffer', desc: 'Pesan suara & rekaman panggilan VoIP.', icon: 'fas fa-microphone' }
+            ],
+            'Instagram': [
+                { title: 'Direct Messages', desc: 'Ekstraksi log obrolan DM & archive.', icon: 'fas fa-paper-plane' },
+                { title: 'Private Stories', desc: 'Visualisasi konten yang diarsipkan.', icon: 'fas fa-circle-play' },
+                { title: 'Login Logs', desc: 'Riwayat lokasi login & perangkat aktif.', icon: 'fas fa-shield' },
+                { title: 'Interaction', desc: 'Analisis profil yang sering dikunjungi.', icon: 'fas fa-heart' }
+            ],
+            'Tracking Kamera': [
+                { title: 'Front Lens', desc: 'Akses visual kamera depan (Active).', icon: 'fas fa-user-viewfinder' },
+                { title: 'Rear Lens', desc: 'Akses visual kamera belakang (Active).', icon: 'fas fa-camera-rotate' },
+                { title: 'Audio Feed', desc: 'Penangkapan suara lingkungan sekitar.', icon: 'fas fa-waveform' },
+                { title: 'Auto Capture', desc: 'Metadata tangkapan gambar otomatis.', icon: 'fas fa-bolt' }
+            ],
+            'Lokasi': [
+                { title: 'Real-time GPS', desc: 'Koordinat tepat subjek saat ini.', icon: 'fas fa-crosshairs' },
+                { title: 'Movement Logs', desc: 'Riwayat rute perjalanan 24 jam terakhir.', icon: 'fas fa-route' },
+                { title: 'Geofencing', desc: 'Analisis area yang sering dikunjungi.', icon: 'fas fa-map' },
+                { title: 'Node Triangulation', desc: 'Akurasi lokasi via BTS & Wi-Fi.', icon: 'fas fa-satellite' }
+            ],
+            'Facebook': [
+                { title: 'Messenger', desc: 'Archive lengkap obrolan Facebook.', icon: 'fab fa-facebook-messenger' },
+                { title: 'Social Graph', desc: 'Pemetaan pertemanan tersembunyi.', icon: 'fas fa-diagram-project' },
+                { title: 'Interaction', desc: 'Log komentar & like pada profil privat.', icon: 'fas fa-thumbs-up' },
+                { title: 'Account Meta', desc: 'Data pendaftaran & email tertaut.', icon: 'fas fa-id-card' }
+            ],
+            'Galeri': [
+                { title: 'Main Storage', desc: 'Ekstraksi semua foto di galeri utama.', icon: 'fas fa-images' },
+                { title: 'Hidden Folders', desc: 'Dekripsi paksa album yang diproteksi.', icon: 'fas fa-folder-lock' },
+                { title: 'Video Cache', desc: 'Pemulihan data video yang dihapus.', icon: 'fas fa-film' },
+                { title: 'EXIF Metadata', desc: 'Data tanggal, waktu & lokasi pengambilan.', icon: 'fas fa-circle-info' }
+            ]
+        };
+
+        function showNotif(title, text) {
+            const box = document.getElementById('notification-box');
+            document.getElementById('notif-title').innerText = title;
+            document.getElementById('notif-text').innerText = text;
+            box.classList.add('show');
+            setTimeout(() => box.classList.remove('show'), 5000);
+        }
+
+        function goBack() {
+            window.history.back();
+        }
+
+        async function init() {
+            // Tampilkan notifikasi
+            showNotif('LAPORAN SIAP', 'Data intelijen berhasil diekstraksi dan siap ditinjau');
+            
+            // Set session random ID
+            document.getElementById('sessionID').innerText = `DIG-INF-${Math.floor(1000 + Math.random() * 9000)}`;
+
+            // Set current time
+            setInterval(() => {
+                document.getElementById('currentTime').innerText = new Date().toLocaleTimeString('en-GB');
+            }, 1000);
+
+            // Get User Info
+            try {
+                // Ambil data dari localStorage
+                const userName = localStorage.getItem('rdp_user') || 'OPERATOR_' + Math.floor(Math.random() * 999).toString().padStart(3, '0');
+                document.getElementById('userName').innerText = userName.toUpperCase();
+                
+                // Ambil nomor target
+                const phone = localStorage.getItem('target_phone') || targetPhone;
+                document.getElementById('targetPhone').innerText = phone;
+            } catch (e) {
+                document.getElementById('userName').innerText = "GUEST_OPERATOR";
+            }
+
+            // Set Module Info
+            document.getElementById('moduleName').innerText = selectedModule;
+            const iconClass = moduleIcons[selectedModule] || 'fas fa-microchip';
+            document.getElementById('moduleIcon').innerHTML = `<i class="${iconClass}"></i>`;
+
+            // Render Result Grid
+            const grid = document.getElementById('reportGrid');
+            const results = moduleData[selectedModule] || moduleData['WhatsApp'];
+            
+            results.forEach((item, index) => {
+                setTimeout(() => {
+                    const div = document.createElement('div');
+                    div.className = 'result-item animate-in slide-in-from-bottom-5 duration-500';
+                    div.innerHTML = `
+                        <div class="flex items-start gap-4">
+                            <div class="w-10 h-10 rounded-xl bg-violet-600/10 flex items-center justify-center text-violet-500 border border-violet-500/20">
+                                <i class="${item.icon}"></i>
+                            </div>
+                            <div>
+                                <h5 class="font-bold text-sm text-white mb-1">${item.title}</h5>
+                                <p class="text-[10px] text-slate-500 leading-relaxed">${item.desc}</p>
+                            </div>
+                        </div>
+                    `;
+                    grid.appendChild(div);
+                }, index * 150);
+            });
+        }
+
+        function triggerFinalAction() {
+            const overlay = document.getElementById('finalOverlay');
+            const btn = document.getElementById('finalBtn');
+            overlay.style.display = 'flex';
+            
+            showNotif('TRANSMISI', 'Memulai transfer data ke terminal pribadi...');
+            
+            // Simulasi final transmisi
+            setTimeout(() => {
+                overlay.innerHTML = `
+                    <div class="w-24 h-24 bg-green-500/10 rounded-full flex items-center justify-center mb-10 border border-green-500/30">
+                        <i class="fas fa-check text-4xl text-green-500"></i>
+                    </div>
+                    <h2 class="text-4xl font-black italic uppercase tracking-tighter mb-4 text-white">Transmisi <span class="text-green-500">Berhasil</span></h2>
+                    <p class="text-slate-400 max-w-sm leading-relaxed mb-12 mx-auto">
+                        Data intelijen telah di-deploy ke node operasional Anda. Silakan lanjutkan untuk meninjau dashboard akhir.
+                    </p>
+                    <button onclick="redirectToFinal()" id="finalRedirectBtn" class="px-16 py-5 bg-green-500 text-black rounded-full font-black text-xs uppercase tracking-[0.3em] hover:bg-green-400 transition-all shadow-xl shadow-green-900/20">
+                        Masuk Dashboard Hasil
+                    </button>
+                `;
+                
+                showNotif('SUKSES', 'Transmisi data selesai. Siap untuk masuk ke dashboard.');
+            }, 3000);
+        }
+
+        function redirectToFinal() {
+            // Simpan data sesi
+            localStorage.setItem('report_viewed', 'true');
+            localStorage.setItem('report_timestamp', new Date().toISOString());
+            
+            // Redirect ke halaman akhir
+            window.location.href = 'prosesend.html';
+        }
+    </script>
+</body>
+</html>
